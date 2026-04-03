@@ -227,10 +227,5 @@ from dagger import dag, function
 
   #+begin_src bash :tangle ../tests/debian.sh :noweb yes :cache no
   <<init>>
-  check-result(debian_timezone)
-  check-result(debian_no_recommends)
-  check-result(debian_extra_packages)
-  check-result(debian_user_check)
-  check-result(debian_python_user_venv_check)
-  check-result(debian_europe_paris_export)
+  check-all
   #+end_src

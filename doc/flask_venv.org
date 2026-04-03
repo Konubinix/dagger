@@ -48,5 +48,5 @@ from dagger import function
 
   #+begin_src bash :tangle ../tests/flask_venv.sh :noweb yes :cache no
   <<init>>
-  check-result(flask_venv_export)
+  check-all
   #+end_src

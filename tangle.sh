@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [[id:0474c6e4-ce96-4f94-8254-1824581b9f8f][Tangle script:1]]
+# [[file:readme.org::*Tangle script][Tangle script:1]]
 # Tangle org files without requiring personal Emacs configuration.
 # Usage:
 #   ./tangle.sh                          # tangle all org files with :tangle directives

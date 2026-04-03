@@ -1,6 +1,8 @@
-;; [[id:d36cf7bf-faac-46a9-9150-4031c8f06ca6][Editor configuration:1]]
+;; [[file:readme.org::*Editor configuration][Editor configuration:1]]
 ((org-mode
   . ((org-babel-default-header-args:python
       . ((:preserve-indentation . t)))
-     )))
+     (eval . (load (expand-file-name "check-result.el"
+                     (locate-dominating-file default-directory ".dir-locals.el"))
+                   t)))))
 ;; Editor configuration:1 ends here

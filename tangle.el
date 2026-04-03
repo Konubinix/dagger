@@ -1,4 +1,4 @@
-;; [[id:0474ada9-a621-4c1a-97aa-270cf96e32c4][Tangle configuration:1]]
+;; [[file:readme.org::*Tangle configuration][Tangle configuration:1]]
 ;;; tangle.el --- Self-contained org-babel tangling for dagger lib -*- lexical-binding: t; -*-
 
 ;; Don't prompt for code block evaluation
@@ -35,74 +35,11 @@
 (add-to-list 'org-babel-default-header-args:python
              '(:preserve-indentation . t))
 
-;; check-result support — transforms check-result(name) into shell test
-;; functions during noweb expansion, comparing actual output against cached
-;; #+RESULTS blocks.  Adapted from ~/prog/clk/tangle.el.
-
-(unless (fboundp 'first) (defalias 'first #'car))
-(unless (fboundp 'second) (defalias 'second #'cadr))
-
-(defun dagger-tangle--get-cached-result (name)
-  "Extract the #+RESULTS content for block NAME from the current org buffer.
-Handles both `: value` and `#+begin_example...#+end_example` formats."
-  (save-match-data
-  (save-excursion
-    (goto-char (point-min))
-    (when (re-search-forward
-           (format "^[ \t]*#\\+RESULTS\\[.*\\]:[ \t]+%s[ \t]*$" (regexp-quote name))
-           nil t)
-      (forward-line 1)
-      (let ((start (point))
-            (lines nil))
-        (cond
-         ;; #+begin_example block — include trailing newline to match org-babel behavior
-         ((looking-at "^[ \t]*#\\+begin_example")
-          (forward-line 1)
-          (while (not (looking-at "^[ \t]*#\\+end_example"))
-            (let ((line (buffer-substring-no-properties
-                         (line-beginning-position) (line-end-position))))
-              (push line lines))
-            (forward-line 1))
-          (concat (mapconcat #'identity (nreverse lines) "\n") "\n"))
-         ;; : prefixed results
-         (t
-          (while (looking-at "^[ \t]*: \\(.*\\)$\\|^[ \t]*:$")
-            (let ((line (or (match-string 1) "")))
-              (push line lines))
-            (forward-line 1))
-          (mapconcat #'identity (nreverse lines) "\n"))))))))
-
-(defun konix/org-babel-expand-noweb-references/add-check-result (orig-func info &optional parent-buffer context)
-  (let ((code (second info)))
-    (setq code
-          (replace-regexp-in-string
-           "^[ \t]*check-result(\\([a-zA-Z0-9_-]+\\))"
-           (lambda (match)
-             (let* ((name (match-string 1 match))
-                    (result (dagger-tangle--get-cached-result name)))
-               (concat
-                "\n" name "_code () {\n"
-                "      <<" name ">>\n"
-                "}\n"
-                "\n" name "_expected () {\n"
-                "      cat<<\"EOEXPECTED\"\n"
-                (or result "") "\n"
-                "EOEXPECTED\n"
-                "}\n"
-                "\necho 'Run " name "'\n"
-                "\n{ " name "_code || true ; } > \"${TMP}/code.txt\" 2>/dev/null\n"
-                name "_expected > \"${TMP}/expected.txt\"\n"
-                "diff -uBw \"${TMP}/code.txt\" \"${TMP}/expected.txt\" || {\n"
-                "echo \"Something went wrong when trying " name "\"\n"
-                "exit 1\n"
-                "}\n")))
-           code nil t))
-    (funcall
-     orig-func
-     ;; info with the code replaced
-     (cons (first info) (cons code (cddr info)))
-     parent-buffer)))
-(advice-add 'org-babel-expand-noweb-references :around 'konix/org-babel-expand-noweb-references/add-check-result)
+;; Load check-result noweb macro support (shared with interactive Emacs
+;; via .dir-locals.el).
+(load (expand-file-name "check-result.el"
+         (file-name-directory (or load-file-name buffer-file-name)))
+      t)
 
 ;;; tangle.el ends here
 ;; Tangle configuration:1 ends here

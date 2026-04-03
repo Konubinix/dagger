@@ -56,5 +56,5 @@ from dagger import dag, function
 
   #+begin_src bash :tangle ../tests/pip_tools.sh :noweb yes :cache no
   <<init>>
-  check-result(pip_tools_available)
+  check-all
   #+end_src

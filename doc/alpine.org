@@ -216,10 +216,5 @@ from dagger import dag, function
 
   #+begin_src bash :tangle ../tests/alpine.sh :noweb yes :cache no
   <<init>>
-  check-result(alpine_timezone)
-  check-result(alpine_extra_packages)
-  check-result(alpine_user_check)
-  check-result(alpine_tz_export)
-  check-result(alpine_python_check)
-  check-result(alpine_python_user_venv_check)
+  check-all
   #+end_src

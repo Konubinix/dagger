@@ -83,6 +83,5 @@ from dagger import dag, function
 
   #+begin_src bash :tangle ../tests/distroless.sh :noweb yes :cache no
   <<init>>
-  check-result(distroless_python3)
-  check-result(distroless_static_export)
+  check-all
   #+end_src

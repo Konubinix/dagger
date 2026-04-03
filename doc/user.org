@@ -166,6 +166,5 @@ from dagger import function
 
   #+begin_src bash :tangle ../tests/user.sh :noweb yes :cache no
   <<init>>
-  check-result(use_user_whoami)
-  check-result(use_user_workdir)
+  check-all
   #+end_src

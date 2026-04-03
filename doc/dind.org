@@ -187,6 +187,5 @@ _DOCKERD_START = (
 
   #+begin_src bash :tangle ../tests/dind.sh :noweb yes :cache no
   <<init>>
-  check-result(dind_docker_installed)
-  check-result(dind_docker_info)
+  check-all
   #+end_src

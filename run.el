@@ -1,4 +1,4 @@
-;; [[id:0ee81e6f-f3c5-444a-9c36-ea8d777ede25][Run configuration:1]]
+;; [[file:readme.org::*Run configuration][Run configuration:1]]
 ;;; run.el --- Batch-execute org-babel bash blocks -*- lexical-binding: t; -*-
 
 (defun dagger-run-file (orgfile)

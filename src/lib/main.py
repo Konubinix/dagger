@@ -1,4 +1,4 @@
-# [[id:48120ecb-7e3c-4cdb-8856-8304b784e40e][Module entry point:2]]
+# [[file:../../readme.org::*Module entry point][Module entry point:2]]
 """Reusable container helpers: base images, timezone, user setup, DinD, etc."""
 
 from dagger import object_type
@@ -71,4 +71,6 @@ class Lib:
     # DinD
     dind_container = dind_container
     dind_with_docker = dind_with_docker
+
+
 # Module entry point:2 ends here
