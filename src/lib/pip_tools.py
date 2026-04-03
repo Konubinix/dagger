@@ -1,0 +1,16 @@
+# [[file:../../doc/pip_tools.org::+begin_src python][No heading:2]]
+import dagger
+from dagger import dag, function
+# No heading:2 ends here
+
+
+# [[file:../../doc/pip_tools.org::*A pip-tools container][A pip-tools container:1]]
+@function
+def pip_tools(self) -> dagger.Container:
+    """Python 3.8 Alpine with pip-tools and a default user."""
+    ctr = dag.container().from_("python:3.8-alpine")
+    ctr = self.use_user(ctr)
+    return ctr.with_exec(["pip", "--quiet", "install", "pip-tools"])
+
+
+# A pip-tools container:1 ends here

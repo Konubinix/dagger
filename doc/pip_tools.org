@@ -1,0 +1,60 @@
+:PROPERTIES:
+:ID:       7268f300-d202-4586-ba1c-a8518da8fde6
+:END:
+#+TITLE: Python dependency management
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle ../src/lib/pip_tools.py
+#+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 1c493c7b-141e-48c4-b132-a38197098f62
+
+I manage Python dependencies with =pip-tools= (=pip-compile= and
+=pip-sync=). I need a ready-made container with these tools installed
+and a non-root user.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+#+begin_src python
+import dagger
+from dagger import dag, function
+#+end_src
+
+* A pip-tools container
+  :PROPERTIES:
+  :ID:       ea6902a9-4fc7-4560-ad8b-c8cb531e1620
+  :END:
+
+  Based on Python 3.8 Alpine (for broad compatibility), with pip-tools
+  installed and a default user. This composes =.from_=, =use_user=, and
+  =.with_exec= — the same primitives described in the [[file:alpine.org][Alpine]] and
+  [[file:user.org][user]] docs.
+
+  #+begin_src python
+  @function
+  def pip_tools(self) -> dagger.Container:
+      """Python 3.8 Alpine with pip-tools and a default user."""
+      ctr = dag.container().from_("python:3.8-alpine")
+      ctr = self.use_user(ctr)
+      return ctr.with_exec(["pip", "--quiet", "install", "pip-tools"])
+  #+end_src
+
+  #+NAME: pip_tools_available
+  #+begin_src bash
+    dagger call pip-tools with-exec --args="which","pip-compile" stdout
+  #+end_src
+
+  #+RESULTS[00d5b7b0e2d0de2542058c5af15c6024837f1d17]: pip_tools_available
+  : /home/sam/.local/bin/pip-compile
+
+
+
+* Test script                                                      :noexport:
+  :PROPERTIES:
+  :ID:       1c08ec10-d4cf-4494-a63f-5518e80d065d
+  :END:
+
+  #+begin_src bash :tangle ../tests/pip_tools.sh :noweb yes :cache no
+  <<init>>
+  check-result(pip_tools_available)
+  #+end_src

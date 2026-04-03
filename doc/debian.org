@@ -1,0 +1,236 @@
+#+TITLE: Debian-based production containers
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle ../src/lib/debian.py
+#+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session b11767de-1b79-4370-9d47-fedea7b2fdaa
+
+Some of my services need libraries or tools that are only well-packaged
+on Debian. I want Debian slim containers with the same defaults as my
+Alpine ones: French timezone, no unnecessary packages pulled in, and
+easy user setup.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+#+begin_src python
+import dagger
+from dagger import dag, function
+#+end_src
+
+* Disabling automatic recommends
+
+  Debian's apt installs recommended packages by default, which bloats
+  images. I disable this globally so every =apt install= stays lean.
+
+  #+begin_src python
+  @function
+  def debian_no_auto_install(self, ctr: dagger.Container) -> dagger.Container:
+      """Disable apt recommends and suggests."""
+      return ctr.with_exec([
+          "sh", "-c",
+          'echo \'APT::Install-Recommends "0";\' > /etc/apt/apt.conf.d/01norecommend'
+          " && "
+          'echo \'APT::Install-Suggests "0";\' >> /etc/apt/apt.conf.d/01norecommend',
+      ])
+  #+end_src
+
+* Setting the timezone on Debian
+
+  Debian ships timezone data by default, so it's simpler than Alpine: just
+  symlink the right zoneinfo file.
+
+  #+begin_src python
+  @function
+  def debian_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
+      """Set timezone to Europe/Paris on a Debian container."""
+      return (
+          ctr
+          .with_exec(["rm", "/etc/localtime"])
+          .with_exec(["ln", "-sf", "/usr/share/zoneinfo/Europe/Paris", "/etc/localtime"])
+      )
+  #+end_src
+
+* Cleaning up apt caches
+
+  After installing packages, I clean up to keep the image small.
+
+  #+begin_src python
+  @function
+  def debian_apt_cleanup(self, ctr: dagger.Container) -> dagger.Container:
+      """Clean apt caches."""
+      return ctr.with_exec([
+          "sh", "-c",
+          "apt-get --quiet clean && rm -rf /var/lib/apt/lists/*",
+      ])
+  #+end_src
+
+* A base Debian container
+
+  This is the Debian equivalent of my Alpine target: slim image with
+  timezone set, no recommends, and optional extra packages.
+
+  #+begin_src python
+  @function
+  def debian(self, extra_packages: str = "") -> dagger.Container:
+      """Debian slim with Europe/Paris timezone, no auto-install, and optional extra packages."""
+      tag = f"{self.debian_version}.{self.debian_min_version}-slim"
+      ctr = dag.container().from_(f"debian:{tag}")
+      ctr = self.debian_no_auto_install(ctr)
+      ctr = self.debian_tz_fr(ctr)
+      if extra_packages:
+          ctr = ctr.with_exec([
+              "sh", "-c",
+              "{ apt-get --quiet update"
+              f" && apt-get --quiet install --yes {extra_packages}"
+              " ; } > /tmp/log 2>&1 || { cat /tmp/log; exit 1; }",
+          ])
+          ctr = self.debian_apt_cleanup(ctr)
+      return ctr
+  #+end_src
+
+  #+NAME: debian_timezone
+  #+begin_src bash
+  dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout
+  #+end_src
+
+  #+RESULTS[144e017434c2e262962a4fd85490ab9e605bfa13]: debian_timezone
+  : /usr/share/zoneinfo/Europe/Paris
+
+  #+NAME: debian_no_recommends
+  #+begin_src bash
+  dagger call debian with-exec --args="cat","/etc/apt/apt.conf.d/01norecommend" stdout
+  #+end_src
+
+  #+RESULTS[aaab10a71492db1ae31b36d9b43f3b1a6afe77a6]: debian_no_recommends
+  : APT::Install-Recommends "0";
+  : APT::Install-Suggests "0";
+
+  #+NAME: debian_extra_packages
+  #+begin_src bash
+  dagger call debian --extra-packages=curl with-exec --args="which","curl" stdout
+  #+end_src
+
+  #+RESULTS[f2cb428aadb5dd53f9f993b1c6caf24f370a7df8]: debian_extra_packages
+  : /usr/bin/curl
+
+* Debian with a default user
+
+  Same pattern as Alpine: a non-root user ready to go.
+
+  #+begin_src python
+  @function
+  def debian_user(self, extra_packages: str = "") -> dagger.Container:
+      """Debian with a default user."""
+      ctr = self.debian(extra_packages=extra_packages)
+      return self.use_user(ctr)
+  #+end_src
+
+  #+NAME: debian_user_check
+  #+begin_src bash
+  dagger call debian-user with-exec --args="id","sam" stdout
+  #+end_src
+
+  #+RESULTS[f62c23c36cef6d941678ba9c9cea468851a65e1f]: debian_user_check
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
+
+* Python with a user and virtualenv on Debian
+
+  For Python services that need Debian-specific libraries (e.g., for
+  native extensions), I want the same venv setup as Alpine but on Debian.
+
+  #+begin_src python
+  @function
+  def debian_python_user_venv(
+      self,
+      extra_packages: str = "",
+      groups: str = "",
+      packages: str = "",
+      work_dir: str = "/app",
+  ) -> dagger.Container:
+      """Debian with python, user, and a virtualenv."""
+      ctr = self.debian(extra_packages=f"python3-venv {extra_packages}".strip())
+      ctr = self.use_user(ctr, groups=groups)
+      ctr = ctr.with_workdir(work_dir)
+      return self.python_venv(ctr, base=work_dir, packages=packages)
+  #+end_src
+
+  #+NAME: debian_python_user_venv_check
+  #+begin_src bash
+  dagger call debian-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
+  #+end_src
+
+  #+RESULTS[bef0133ba3b943f379938d568b8ca1e13a50f90f]: debian_python_user_venv_check
+  : Python 3.13.5
+
+* Extracting the Europe/Paris timezone file
+
+  Distroless containers can't install packages. I extract the timezone
+  file from Debian so I can copy it into distroless images.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.file(path)]] extracts a single file from the container as a [[https://docs.dagger.io/api/reference#definition-File][File]]
+  artifact. This lets us grab the zoneinfo file and later inject it into
+  images that have no package manager.
+
+  #+begin_src python
+  @function
+  def debian_europe_paris(self) -> dagger.File:
+      """Extract the Europe/Paris localtime file from Debian."""
+      tag = f"{self.debian_version}.{self.debian_min_version}-slim"
+      return (
+          dag.container()
+          .from_(f"debian:{tag}")
+          .file("/usr/share/zoneinfo/Europe/Paris")
+      )
+  #+end_src
+
+  #+NAME: debian_europe_paris_export
+  #+begin_src bash
+  dagger call debian-europe-paris export --path="$TMP/out/localtime" > /dev/null
+  test -s "$TMP/out/localtime" && echo "non-empty"
+  #+end_src
+
+  #+RESULTS[0b760b29d3193f2d81f570f7c3d49d866764cc75]: debian_europe_paris_export
+  : non-empty
+
+* Creating a Python venv
+
+  A reusable helper to create a virtualenv with =--system-site-packages=
+  and optionally install packages into it.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.with_env_variable]] with =expand=True= lets the value reference
+  existing variables — here we prepend the venv's =bin/= directory to
+  =$PATH= so that =python= and =pip= resolve to the venv copies without
+  hard-coding the rest of the path.
+
+  #+begin_src python
+  @function
+  def python_venv(
+      self,
+      ctr: dagger.Container,
+      base: str,
+      packages: str = "",
+  ) -> dagger.Container:
+      """Create a Python venv with --system-site-packages and optionally install packages."""
+      ctr = ctr.with_exec([
+          "python3", "-m", "venv", "--system-site-packages", f"{base}/venv",
+      ]).with_env_variable("PATH", f"{base}/venv/bin:$PATH", expand=True)
+      if packages:
+          ctr = ctr.with_exec([
+              "sh", "-c",
+              f"{base}/venv/bin/python -m pip --quiet install --upgrade {packages}",
+          ])
+      return ctr
+  #+end_src
+
+* Test script                                                      :noexport:
+
+  #+begin_src bash :tangle ../tests/debian.sh :noweb yes :cache no
+  <<init>>
+  check-result(debian_timezone)
+  check-result(debian_no_recommends)
+  check-result(debian_extra_packages)
+  check-result(debian_user_check)
+  check-result(debian_python_user_venv_check)
+  check-result(debian_europe_paris_export)
+  #+end_src

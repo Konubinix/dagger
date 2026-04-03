@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# [[file:testing.org::*Dagger wrapper for batch execution][Dagger wrapper for batch execution:1]]
+export DAGGER_NO_NAG=1
+export DARK=1
+DAGGER_PATH="$(which -a dagger|grep -v /tests/|head -1)"
+exec "$DAGGER_PATH" --silent "$@" 2>/dev/null
+# Dagger wrapper for batch execution:1 ends here

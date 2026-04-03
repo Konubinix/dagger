@@ -1,0 +1,225 @@
+:PROPERTIES:
+:ID:       9e3b6103-7bb3-4f2f-bf2e-1ce755f70384
+:END:
+#+TITLE: Lightweight French-timezone containers
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle ../src/lib/alpine.py
+#+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 6b362c1c-840e-414f-ac4e-3a71451a6dff
+
+I work on services deployed in France. I need containers where logs
+and cron jobs use Europe/Paris by default, without having to configure
+timezone in every project. Alpine is my go-to base image because it's
+small and fast to pull.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+#+begin_src python
+import dagger
+from dagger import dag, function
+#+end_src
+
+* Setting the timezone on Alpine
+  :PROPERTIES:
+  :ID:       e4e79d12-b0d3-4121-981c-90de5dfd4246
+  :END:
+
+  On Alpine, timezone data comes from the =tzdata= package. We install it,
+  copy the zoneinfo file, then remove the package to keep the image small.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.with_exec]] runs a shell command inside the container — the
+  equivalent of =RUN= in a Dockerfile. Here it installs =tzdata=, copies
+  the zoneinfo file, and removes the package in a single step so the
+  final image stays small.
+
+  #+begin_src python
+  @function
+  def alpine_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
+      """Set timezone to Europe/Paris on an Alpine container."""
+      return ctr.with_exec([
+          "sh", "-c",
+          "apk --quiet add --update tzdata"
+          " && cp /usr/share/zoneinfo/Europe/Paris /etc/localtime"
+          ' && echo "Europe/Paris" > /etc/timezone'
+          " && apk --quiet del tzdata",
+      ])
+  #+end_src
+
+  We can verify the timezone is correctly set:
+
+  #+NAME: alpine_timezone
+  #+begin_src bash
+  dagger call alpine with-exec --args="cat","/etc/timezone" stdout
+  #+end_src
+
+  #+RESULTS[a8d7f138a789ee4d86c2d38a7c5cab9127e96c9f]: alpine_timezone
+  : Europe/Paris
+
+* A base Alpine container with optional extra packages
+  :PROPERTIES:
+  :ID:       fcb8570e-2515-4a0f-a703-4b6ed673464a
+  :END:
+
+  Sometimes I need additional tools. The =alpine= target gives me a
+  timezone-ready Alpine with an easy way to add packages.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][dag.container()]] creates a new empty container — the starting point
+  for every pipeline step. [[https://docs.dagger.io/api/reference#definition-Container][.from_]] sets the base image, like =FROM= in
+  a Dockerfile. We chain =with_exec= to install any extra packages the
+  caller requested.
+
+  #+begin_src python
+  @function
+  def alpine(self, extra_packages: str = "") -> dagger.Container:
+      """Alpine 3.23 with Europe/Paris timezone and optional extra packages."""
+      ctr = dag.container().from_("alpine:3.23")
+      ctr = self.alpine_tz_fr(ctr)
+      if extra_packages:
+          ctr = ctr.with_exec([
+              "sh", "-c", f"apk --quiet add {extra_packages}",
+          ])
+      return ctr
+  #+end_src
+
+  #+NAME: alpine_extra_packages
+  #+begin_src bash
+  dagger call alpine --extra-packages=curl with-exec --args="which","curl" stdout
+  #+end_src
+
+  #+RESULTS[9a4542dcf649e356b5d2dc2f5fe38997e23cff61]: alpine_extra_packages
+  : /usr/bin/curl
+
+* A non-root user for safer workflows
+  :PROPERTIES:
+  :ID:       53e17e2e-2890-4b31-a125-fd02a0265c3a
+  :END:
+
+  Running as root in containers is risky. I want a default user ready to
+  go, so I don't have to repeat user-creation boilerplate.
+
+  #+begin_src python
+  @function
+  def alpine_user(
+      self,
+      extra_packages: str = "",
+      groups: str = "",
+  ) -> dagger.Container:
+      """Alpine with a default user."""
+      ctr = self.alpine(extra_packages=extra_packages)
+      return self.use_user(ctr, groups=groups)
+  #+end_src
+
+  #+NAME: alpine_user_check
+  #+begin_src bash
+  dagger call alpine-user with-exec --args="id","sam" stdout
+  #+end_src
+
+  #+RESULTS[cb573319a81eff33dbb801455ca80abd2a6bf440]: alpine_user_check
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
+
+* Timezone artifacts for other containers
+  :PROPERTIES:
+  :ID:       4bd886bd-2213-484a-900e-c3cac400e5a6
+  :END:
+
+  Some containers (like distroless) can't run =apk=. I need to extract the
+  timezone files from Alpine so I can copy them in.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.file(path)]] pulls a single file out of a container as a [[https://docs.dagger.io/api/reference#definition-File][File]]
+  artifact. [[https://docs.dagger.io/api/reference#definition-Directory][dag.directory()]] creates a new empty Directory and
+  [[https://docs.dagger.io/api/reference#definition-Directory][.with_file]] adds files into it. Together they let us bundle timezone
+  files extracted from Alpine so other containers can import them.
+
+  #+begin_src python
+  @function
+  def alpine_tz(self) -> dagger.Directory:
+      """Extract /etc/localtime and /etc/timezone from Alpine as artifacts."""
+      ctr = self.alpine()
+      return (
+          dag.directory()
+          .with_file("localtime", ctr.file("/etc/localtime"))
+          .with_file("timezone", ctr.file("/etc/timezone"))
+      )
+  #+end_src
+
+  #+NAME: alpine_tz_export
+  #+begin_src bash
+  dagger call alpine-tz export --path="$TMP/out" > /dev/null
+  ls "$TMP/out" | sort
+  #+end_src
+
+  #+RESULTS[89acf81c2f644d2e866f1fedbfd408802a7777f9]: alpine_tz_export
+  : localtime
+  : timezone
+
+* Python on Alpine
+  :PROPERTIES:
+  :ID:       f1cfb55f-ec94-48d1-a946-3da5601ce932
+  :END:
+
+  I often need a quick Python environment on Alpine for scripts and tools.
+
+  #+begin_src python
+  @function
+  def alpine_python(self, extra_packages: str = "") -> dagger.Container:
+      """Alpine with python3 and pip."""
+      return self.alpine(extra_packages=f"python3 py3-pip {extra_packages}".strip())
+  #+end_src
+
+  #+NAME: alpine_python_check
+  #+begin_src bash
+  dagger call alpine-python with-exec --args="python3","--version" stdout
+  #+end_src
+
+  #+RESULTS[e779e8d6e5f42ad2f95fa12753c15b870ef57453]: alpine_python_check
+  : Python 3.12.12
+
+* Python with a user and virtualenv
+  :PROPERTIES:
+  :ID:       9ad0ca24-648d-4092-8acf-2143f4a27040
+  :END:
+
+  For application development, I want a full setup: Alpine + Python + a
+  non-root user + a virtualenv ready at =/app/venv=.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.with_workdir]] changes the container's working directory — like
+  =WORKDIR= in a Dockerfile. Setting it to =/app= means subsequent
+  commands and the virtualenv land in the right place.
+
+  #+begin_src python
+  @function
+  def alpine_python_user_venv(
+      self,
+      extra_packages: str = "",
+      groups: str = "",
+      packages: str = "",
+      work_dir: str = "/app",
+  ) -> dagger.Container:
+      """Alpine with python, user, and a virtualenv."""
+      ctr = self.alpine_python(extra_packages=extra_packages)
+      ctr = self.use_user(ctr, groups=groups)
+      ctr = ctr.with_workdir(work_dir)
+      return self.python_venv(ctr, base=work_dir, packages=packages)
+  #+end_src
+
+  #+NAME: alpine_python_user_venv_check
+  #+begin_src bash
+  dagger call alpine-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
+  #+end_src
+
+  #+RESULTS[5036768e78eb55c3271484f609e5a478bd785bab]: alpine_python_user_venv_check
+  : Python 3.12.12
+
+* Test script                                                      :noexport:
+
+  #+begin_src bash :tangle ../tests/alpine.sh :noweb yes :cache no
+  <<init>>
+  check-result(alpine_timezone)
+  check-result(alpine_extra_packages)
+  check-result(alpine_user_check)
+  check-result(alpine_tz_export)
+  check-result(alpine_python_check)
+  check-result(alpine_python_user_venv_check)
+  #+end_src

@@ -1,0 +1,171 @@
+#+TITLE: Non-root user workflows
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle ../src/lib/user.py
+#+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 8042a222-4aac-4682-9042-7dee49fd9b21
+
+Running containers as root is a security risk. I need reusable helpers
+to create users, switch to them, and set up their environment — without
+repeating the same =adduser= boilerplate in every project.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+#+begin_src python
+import dagger
+from dagger import function
+#+end_src
+
+* Creating a user with groups and sudo
+
+  I need to create a user with a specific UID, optional group memberships,
+  and optional passwordless sudo access. This covers both development
+  containers (where sudo is handy) and production ones (where it's not).
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.with_env_variable]] sets an environment variable inside the
+  container, like =ENV= in a Dockerfile. We use it here to set =HOME=
+  and later to prepend =~/.local/bin= to =PATH= (with =expand=True= so
+  =$PATH= is resolved at build time).
+
+  #+begin_src python
+  @function
+  def setup_user(
+      self,
+      ctr: dagger.Container,
+      uid: int = 1000,
+      username: str = "sam",
+      sudoer: bool = False,
+      shell: str = "/bin/sh",
+      groups: str = "",
+  ) -> dagger.Container:
+      """Create a user with optional groups and sudo access."""
+      ctr = (
+          ctr
+          .with_env_variable("HOME", f"/home/{username}")
+          .with_exec([
+              "sh", "-c",
+              "if ! which addgroup && which apt ; then"
+              " apt update && apt install --yes adduser ; fi",
+          ])
+          .with_exec([
+              "sh", "-c",
+              f"addgroup --gid {uid} --system {username}"
+              f" && adduser --uid {uid} --shell {shell}"
+              f" --disabled-password --gecos '' {username}"
+              f" --ingroup {username}"
+              f" && chown -R {username}:{username} /home/{username}",
+          ])
+      )
+      if sudoer:
+          ctr = ctr.with_exec([
+              "sh", "-c",
+              f'mkdir -p /etc/sudoers.d'
+              f' && echo "{username} ALL=(ALL) NOPASSWD: ALL"'
+              f' >> /etc/sudoers.d/username',
+          ])
+      if groups:
+          ctr = ctr.with_exec([
+              "sh", "-c",
+              f"for group in {groups} ; do"
+              f' {{ grep -q -E "^${{group}}:" /etc/group'
+              f" || addgroup --system $group ; }}"
+              f" && adduser {username} $group ; done",
+          ])
+      ctr = ctr.with_env_variable(
+          "PATH", f"/home/{username}/.local/bin:$PATH", expand=True,
+      )
+      return ctr
+  #+end_src
+
+* Switching to a user
+
+  Once a user is created, I want to switch to it and land in their home
+  directory — just like logging in.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.with_user]] switches the active user for all subsequent commands,
+  like =USER= in a Dockerfile. Combined with [[https://docs.dagger.io/api/reference#definition-Container][.with_workdir]] it
+  simulates a login into the user's home directory.
+
+  #+begin_src python
+  @function
+  def as_user(
+      self,
+      ctr: dagger.Container,
+      uid: int = 1000,
+      username: str = "sam",
+  ) -> dagger.Container:
+      """Switch to user and set workdir to their home."""
+      return (
+          ctr
+          .with_env_variable("HOME", f"/home/{username}")
+          .with_user(username)
+          .with_workdir(f"/home/{username}")
+      )
+  #+end_src
+
+* The full combo: create + switch
+
+  Most of the time I just want "give me a user and switch to it". This
+  combines [[*Creating a user with groups and sudo][setup_user]] and [[*Switching to a user][as_user]] in one call.
+
+  #+begin_src python
+  @function
+  def use_user(
+      self,
+      ctr: dagger.Container,
+      groups: str = "",
+      uid: int = 1000,
+      sudoer: bool = False,
+      username: str = "sam",
+  ) -> dagger.Container:
+      """Create a user and switch to it (SETUP_USER + AS_USER)."""
+      ctr = self.setup_user(ctr, uid=uid, username=username, sudoer=sudoer, groups=groups)
+      ctr = self.as_user(ctr, uid=uid, username=username)
+      return ctr
+  #+end_src
+
+  We test user creation via the [[file:alpine.org::*A non-root user for safer workflows][alpine-user]] target (which calls [[*The full combo: create + switch][use_user]]):
+
+  #+NAME: use_user_whoami
+  #+begin_src bash
+  dagger call alpine-user with-exec --args="whoami" stdout
+  #+end_src
+
+  #+RESULTS[e031d6f2053e990966540648e269c25b50de0215]: use_user_whoami
+  : sam
+
+  #+NAME: use_user_workdir
+  #+begin_src bash
+  dagger call alpine-user with-exec --args="pwd" stdout
+  #+end_src
+
+  #+RESULTS[a3bfb9eacfac16e14fe37a82fb76d4d8227ff47b]: use_user_workdir
+  : /home/sam
+
+* Writing environment variables to the user's profile
+
+  Sometimes I need to persist an environment variable so it's available
+  in login shells (e.g., for SSH sessions or cron jobs).
+
+  #+begin_src python
+  @function
+  def user_write_env(
+      self,
+      ctr: dagger.Container,
+      name: str,
+  ) -> dagger.Container:
+      """Append an export line for a variable to ~/.profile."""
+      return ctr.with_exec([
+          "bash", "-c",
+          f'echo export {name}="${{{name}}}"' + " >> ${HOME}/.profile",
+      ])
+  #+end_src
+
+* Test script                                                      :noexport:
+
+  #+begin_src bash :tangle ../tests/user.sh :noweb yes :cache no
+  <<init>>
+  check-result(use_user_whoami)
+  check-result(use_user_workdir)
+  #+end_src

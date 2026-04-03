@@ -1,0 +1,52 @@
+#+TITLE: Ready-made Flask virtualenv
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle ../src/lib/flask_venv.py
+#+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session ccd73265-6368-4179-91a5-5c3135fccdb5
+
+I often build small Flask APIs. Instead of repeating the venv setup in
+every project, I want a pre-built virtualenv with Flask installed that
+I can copy into my final image.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+#+begin_src python
+import dagger
+from dagger import function
+#+end_src
+
+* A Flask virtualenv as a directory artifact
+
+  This returns the =/app/venv= directory with Flask (and optional extra
+  packages) already installed. I can then copy this into any container.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.directory(path)]] extracts a directory from the container as a
+  [[https://docs.dagger.io/api/reference#definition-Directory][Directory]] artifact. Here it pulls out the fully-built virtualenv so
+  it can be copied into a different, leaner final image without
+  repeating the install steps.
+
+  #+begin_src python
+  @function
+  def flask_venv(self, packages: str = "") -> dagger.Directory:
+      """Debian python user venv with flask, exported as directory artifact."""
+      ctr = self.debian_python_user_venv(packages=f"flask {packages}".strip())
+      return ctr.directory("/app/venv")
+  #+end_src
+
+  #+NAME: flask_venv_export
+  #+begin_src bash
+  dagger call flask-venv export --path="$TMP/out" > /dev/null
+  test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
+  #+end_src
+
+  #+RESULTS[15b5556b71422acf9957c6016bfdd6146097cbfd]: flask_venv_export
+  : bin/flask exists
+
+* Test script                                                      :noexport:
+
+  #+begin_src bash :tangle ../tests/flask_venv.sh :noweb yes :cache no
+  <<init>>
+  check-result(flask_venv_export)
+  #+end_src

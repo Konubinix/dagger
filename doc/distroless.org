@@ -1,0 +1,88 @@
+#+TITLE: Minimal production images
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle ../src/lib/distroless.py
+#+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 7ee378ed-afd5-4298-9618-5db12e00c618
+
+For production, I want the smallest possible attack surface. Distroless
+images have no shell, no package manager — just my application and its
+runtime. But I still need the correct French timezone.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+#+begin_src python
+import dagger
+from dagger import dag, function
+#+end_src
+
+* Setting the timezone on distroless
+
+  Distroless can't run =apt= or =apk=. We copy the timezone file extracted
+  from Debian (via [[file:debian.org::*Extracting the Europe/Paris timezone file][debian_europe_paris]]) directly into the image.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.with_file(path, file)]] copies a =File= artifact into the container
+  at the given path — like =COPY= in a Dockerfile. This is the only way
+  to get files into a distroless image since there is no shell or
+  package manager to run.
+
+  #+begin_src python
+  @function
+  def distroless_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
+      """Copy Europe/Paris localtime into a distroless container."""
+      return ctr.with_file("/etc/localtime", self.debian_europe_paris())
+  #+end_src
+
+* Distroless Python 3
+
+  For Python services that need maximum security and minimum image size.
+
+  #+begin_src python
+  @function
+  def distroless_python3_debian(self) -> dagger.Container:
+      """Distroless python3 with Europe/Paris timezone."""
+      ctr = dag.container().from_(
+          f"gcr.io/distroless/python3-debian{self.debian_version}"
+      )
+      return self.distroless_tz_fr(ctr)
+  #+end_src
+
+  #+NAME: distroless_python3
+  #+begin_src bash
+  dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
+  #+end_src
+
+  #+RESULTS[4ee548b4e97ed7244084e68d452814f047d0ca2e]: distroless_python3
+  : True
+
+* Distroless static
+
+  For Go or Rust services compiled as static binaries.
+
+  #+begin_src python
+  @function
+  def distroless_debian(self) -> dagger.Container:
+      """Distroless static with Europe/Paris timezone."""
+      ctr = dag.container().from_(
+          f"gcr.io/distroless/static-debian{self.debian_version}"
+      )
+      return self.distroless_tz_fr(ctr)
+  #+end_src
+
+  #+NAME: distroless_static_export
+  #+begin_src bash
+  dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out/localtime" > /dev/null
+  test -s "$TMP/out/localtime" && echo "non-empty"
+  #+end_src
+
+  #+RESULTS[c7e5d2eb9277e393da0ab05900e349aef4594f73]: distroless_static_export
+  : non-empty
+
+* Test script                                                      :noexport:
+
+  #+begin_src bash :tangle ../tests/distroless.sh :noweb yes :cache no
+  <<init>>
+  check-result(distroless_python3)
+  check-result(distroless_static_export)
+  #+end_src

@@ -1,0 +1,79 @@
+#+TITLE: Running the tests
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no
+
+I need a simple way to run all the use-case tests. The test runner uses
+pytest to discover and execute the shell scripts tangled from these org
+files. Since this is a NixOS system, I use a nix-shell shebang to pull
+in pytest without polluting the global environment.
+
+* Test sandbox setup
+  :PROPERTIES:
+  :ID:       06fbb301-14f7-49d9-b466-d0fbe3fa58a5
+  :END:
+
+  Each test script sources =helpers.sh= to set up a sandbox: strict
+  error handling, suppressed nag messages, and a temporary directory
+  available as =$TMP=. Test verification is handled by the
+  =check-result= noweb macro (see =tangle.el=), which diffs actual
+  command output against cached =#+RESULTS= blocks.
+
+  #+begin_src bash :tangle helpers.sh :shebang "#!/usr/bin/env bash"
+    TMP=$(mktemp -d)
+    trap 'rm -rf "$TMP"' EXIT
+    export PATH="${ROOT}/tests:$PATH"
+  #+end_src
+
+* The test entry point
+  :PROPERTIES:
+  :ID:       d49833b6-c2c2-4041-aa38-b7afcb4c0ef9
+  :END:
+
+  #+begin_src bash :tangle ../test.sh :shebang "#!/usr/bin/env nix-shell\n#!nix-shell -i bash -p python3Packages.pytest"
+  set -eu
+  cd "$(dirname "$0")"
+  pytest tests/test_use_cases.py "$@"
+  #+end_src
+
+* The pytest runner
+  :PROPERTIES:
+  :ID:       8129ce4d-51d8-414d-b228-fe178fd6ebd3
+  :END:
+
+  Pytest discovers all =.sh= files in =tests/= (except =helpers.sh=)
+  and runs each one as a separate test case.
+
+  #+begin_src python :tangle test_use_cases.py
+  from pathlib import Path
+  from subprocess import check_call
+
+  import pytest
+
+  TESTS = Path(__file__).parent
+  SKIP = {"helpers.sh", "dagger"}
+  scripts = sorted(f.name for f in TESTS.glob("*.sh") if f.name not in SKIP)
+
+
+  @pytest.mark.parametrize(
+      "script", scripts, ids=[s.removesuffix(".sh") for s in scripts]
+  )
+  def test_use_case(script):
+      check_call(["bash", "-eu", str(TESTS / script)], cwd=str(TESTS))
+  #+end_src
+
+* Dagger wrapper for batch execution
+  :PROPERTIES:
+  :ID:       a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  :END:
+
+  Dagger's TUI writes terminal escape sequences (=\e]11;?=) directly
+  to =/dev/tty=, which breaks Emacs comint sessions. This wrapper
+  finds the real =dagger= binary, sets =DARK=1= to skip the terminal
+  background query, and redirects stderr to suppress progress output.
+
+  #+begin_src bash :tangle dagger :shebang "#!/usr/bin/env bash"
+    export DAGGER_NO_NAG=1
+    export DARK=1
+    DAGGER_PATH="$(which -a dagger|grep -v /tests/|head -1)"
+    exec "$DAGGER_PATH" --silent "$@" 2>/dev/null
+  #+end_src

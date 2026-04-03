@@ -2,4 +2,4 @@
 /**/__pycache__
 /sdk
 /.env
-/.agent-shell/
+/.tangle-deps/

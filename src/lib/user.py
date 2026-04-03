@@ -1,0 +1,128 @@
+# [[file:../../doc/user.org::+begin_src python][No heading:2]]
+import dagger
+from dagger import function
+# No heading:2 ends here
+
+
+# [[file:../../doc/user.org::*Creating a user with groups and sudo][Creating a user with groups and sudo:1]]
+@function
+def setup_user(
+    self,
+    ctr: dagger.Container,
+    uid: int = 1000,
+    username: str = "sam",
+    sudoer: bool = False,
+    shell: str = "/bin/sh",
+    groups: str = "",
+) -> dagger.Container:
+    """Create a user with optional groups and sudo access."""
+    ctr = (
+        ctr.with_env_variable("HOME", f"/home/{username}")
+        .with_exec(
+            [
+                "sh",
+                "-c",
+                "if ! which addgroup && which apt ; then"
+                " apt update && apt install --yes adduser ; fi",
+            ]
+        )
+        .with_exec(
+            [
+                "sh",
+                "-c",
+                f"addgroup --gid {uid} --system {username}"
+                f" && adduser --uid {uid} --shell {shell}"
+                f" --disabled-password --gecos '' {username}"
+                f" --ingroup {username}"
+                f" && chown -R {username}:{username} /home/{username}",
+            ]
+        )
+    )
+    if sudoer:
+        ctr = ctr.with_exec(
+            [
+                "sh",
+                "-c",
+                f"mkdir -p /etc/sudoers.d"
+                f' && echo "{username} ALL=(ALL) NOPASSWD: ALL"'
+                f" >> /etc/sudoers.d/username",
+            ]
+        )
+    if groups:
+        ctr = ctr.with_exec(
+            [
+                "sh",
+                "-c",
+                f"for group in {groups} ; do"
+                f' {{ grep -q -E "^${{group}}:" /etc/group'
+                f" || addgroup --system $group ; }}"
+                f" && adduser {username} $group ; done",
+            ]
+        )
+    ctr = ctr.with_env_variable(
+        "PATH",
+        f"/home/{username}/.local/bin:$PATH",
+        expand=True,
+    )
+    return ctr
+
+
+# Creating a user with groups and sudo:1 ends here
+
+
+# [[file:../../doc/user.org::*Switching to a user][Switching to a user:1]]
+@function
+def as_user(
+    self,
+    ctr: dagger.Container,
+    uid: int = 1000,
+    username: str = "sam",
+) -> dagger.Container:
+    """Switch to user and set workdir to their home."""
+    return (
+        ctr.with_env_variable("HOME", f"/home/{username}")
+        .with_user(username)
+        .with_workdir(f"/home/{username}")
+    )
+
+
+# Switching to a user:1 ends here
+
+
+# [[file:../../doc/user.org::*The full combo: create + switch][The full combo: create + switch:1]]
+@function
+def use_user(
+    self,
+    ctr: dagger.Container,
+    groups: str = "",
+    uid: int = 1000,
+    sudoer: bool = False,
+    username: str = "sam",
+) -> dagger.Container:
+    """Create a user and switch to it (SETUP_USER + AS_USER)."""
+    ctr = self.setup_user(ctr, uid=uid, username=username, sudoer=sudoer, groups=groups)
+    ctr = self.as_user(ctr, uid=uid, username=username)
+    return ctr
+
+
+# The full combo: create + switch:1 ends here
+
+
+# [[file:../../doc/user.org::*Writing environment variables to the user's profile][Writing environment variables to the user's profile:1]]
+@function
+def user_write_env(
+    self,
+    ctr: dagger.Container,
+    name: str,
+) -> dagger.Container:
+    """Append an export line for a variable to ~/.profile."""
+    return ctr.with_exec(
+        [
+            "bash",
+            "-c",
+            f'echo export {name}="${{{name}}}"' + " >> ${HOME}/.profile",
+        ]
+    )
+
+
+# Writing environment variables to the user's profile:1 ends here
