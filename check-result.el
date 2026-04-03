@@ -1,5 +1,5 @@
 ;; [[file:readme.org::*Check-result noweb macro][Check-result noweb macro:1]]
-;;; check-result.el --- Noweb macros for test scripts -*- lexical-binding: t; -*-
+;;; check-result.el --- Noweb macros for test scripts
 
 (unless (fboundp 'first) (defalias 'first #'car))
 (unless (fboundp 'second) (defalias 'second #'cadr))
@@ -49,11 +49,14 @@ Handles both `: value` and `#+begin_example...#+end_example` formats."
                (nreverse names) "\n")))
 
 (defun konix/org-babel-expand-noweb-references/add-check-result (orig-func info &optional parent-buffer context)
-  (let ((code (second info)))
+  (let* ((code (second info))
+         (src-buf (or parent-buffer (current-buffer))))
     ;; Expand check-all into check-result(name) for every named bash block
     (setq code (replace-regexp-in-string
                 "^[ \t]*check-all[ \t]*$"
-                (lambda (_) (dagger-tangle--all-check-results))
+                (lambda (_) (save-match-data
+                              (with-current-buffer src-buf
+                                (dagger-tangle--all-check-results))))
                 code nil t))
     ;; Expand each check-result(name) into shell test functions
     (setq code
@@ -61,7 +64,9 @@ Handles both `: value` and `#+begin_example...#+end_example` formats."
            "^[ \t]*check-result(\\([a-zA-Z0-9_-]+\\))"
            (lambda (match)
              (let* ((name (match-string 1 match))
-                    (result (dagger-tangle--get-cached-result name)))
+                    (result (save-match-data
+                              (with-current-buffer src-buf
+                                (dagger-tangle--get-cached-result name)))))
                (concat
                 "\n" name "_code () {\n"
                 "      <<" name ">>\n"
