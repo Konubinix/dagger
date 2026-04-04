@@ -1,1 +1,24 @@
-{}
+{
+    "alias": {
+        "test": {
+            "commands": [
+                [
+                    "exec",
+                    "--in-project",
+                    "./run.sh"
+                ],
+                [
+                    "exec",
+                    "--in-project",
+                    "./tangle.sh"
+                ],
+                [
+                    "exec",
+                    "--in-project",
+                    "./test.sh"
+                ]
+            ],
+            "documentation": null
+        }
+    }
+}
