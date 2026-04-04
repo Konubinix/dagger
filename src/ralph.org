@@ -381,20 +381,20 @@ for raw in sys.stdin:
     # wrapper messages
     m = re.search(r"\[ralph-wrapper\] (.*)", raw)
     if m:
-        out("\U0001f916", m.group(1))
+        out("[ralph]", m.group(1))
         continue
     # event emissions
     if "Event emitted" in raw:
         m2 = re.search(r"Event emitted: ([\w.]+)", raw)
-        out("\U0001f4e8", f"event: {m2.group(1)}" if m2 else "event emitted")
+        out("[event]", f"event: {m2.group(1)}" if m2 else "event emitted")
         continue
     # git commits (before generic tool match)
     if "git commit" in raw:
         m = re.search(r"git commit -m .(.{3,120}?)(?:\\n|\\|\"\"|\x27\x27|$)", raw)
         if m:
-            out("\U0001f4be", f"commit: {m.group(1).strip().strip(chr(34))}")
+            out("[git]", f"commit: {m.group(1).strip().strip(chr(34))}")
         else:
-            out("\U0001f4be", "commit")
+            out("[git]", "commit")
         continue
     # tool calls
     m = re.search(r"\"name\":\"(Bash|Edit|Write|Glob|Grep|Read)\"", raw)
@@ -405,19 +405,19 @@ for raw in sys.stdin:
         mp = re.search(r"\"pattern\":\"([^\"]{0,80})", raw)
         if mc:
             cmd = mc.group(1).replace("\\n"," ").strip()
-            out("\U0001f4bb", f"{tool}: {cmd}")
+            out("[tool]", f"{tool}: {cmd}")
         elif mf:
-            out("\U0000270f\U0000fe0f", f"{tool}: {mf.group(1)}")
+            out("[file]", f"{tool}: {mf.group(1)}")
         elif mp:
-            out("\U0001f50d", f"{tool}: {mp.group(1)}")
+            out("[grep]", f"{tool}: {mp.group(1)}")
         continue
     # test results
     m = re.search(r"(\d+ passed[^\"\\\\]*)", raw)
     if m:
-        out("\u2705" if "failed" not in m.group(1) else "\u274c", m.group(1))
+        out("[PASS]" if "failed" not in m.group(1) else "[FAIL]", m.group(1))
         continue
     if re.search(r"FAILED|failed", raw) and "test_use_case" in raw:
-        out("\u274c", "TEST FAILED")
+        out("[FAIL]", "TEST FAILED")
         continue
 ' && \
         echo "[ralph.run] dagger completed successfully" || \
