@@ -3,3 +3,7 @@
 /sdk
 /.env
 /.tangle-deps/
+/.ralph-log
+/.ralph-pid
+/todo.org
+/ralph-output/
