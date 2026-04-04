@@ -541,7 +541,7 @@ Levels:
   json     show every line raw
 --
 O:--consul-key:str:Consul KV key for stop signaling:ralph/dagger/status
-A:level:str:Log level (normal, think, verbose, json). Omit to show current level.
+A:level:["normal", "think", "verbose", "json", "show"]:Log level. Omit to show current level.:{"default": "show"}
 EOF
 }
 
@@ -556,7 +556,7 @@ fi
 
 LEVEL="${CLK___LEVEL:-}"
 
-if [ -z "${LEVEL}" ]; then
+if [ "${LEVEL}" = "show" ]; then
     current="$(consul kv get "${CONSUL_KEY}/log-level" 2>/dev/null || echo "normal")"
     echo "${current}"
     exit 0
