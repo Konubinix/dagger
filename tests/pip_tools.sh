@@ -1,5 +1,4 @@
 # [[file:../src/pip_tools.org::*Test script][Test script:1]]
-ROOT='/home/sam/prog/dagger'
 source "./helpers.sh"
 
 pip_tools_available_code () {

@@ -51,6 +51,7 @@ from dagger import dag, function
 
 * Test script                                                      :noexport:
   :PROPERTIES:
+  :header-args:bash: :tangle no
   :ID:       1c08ec10-d4cf-4494-a63f-5518e80d065d
   :END:
 

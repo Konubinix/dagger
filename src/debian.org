@@ -224,6 +224,9 @@ from dagger import dag, function
   #+end_src
 
 * Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
 
   #+begin_src bash :tangle ../tests/debian.sh :noweb yes :cache no
   <<init>>

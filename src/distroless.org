@@ -80,6 +80,9 @@ from dagger import dag, function
   : non-empty
 
 * Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
 
   #+begin_src bash :tangle ../tests/distroless.sh :noweb yes :cache no
   <<init>>

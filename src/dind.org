@@ -135,6 +135,7 @@ _DOCKERD_START = (
 
 * Test script                                                      :noexport:
   :PROPERTIES:
+  :header-args:bash: :tangle no
   :ID:       3bbae99e-fce1-4b81-9a8e-18045dda5c47
   :END:
 

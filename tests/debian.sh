@@ -1,5 +1,4 @@
 # [[file:../src/debian.org::*Test script][Test script:1]]
-ROOT='/home/sam/prog/dagger'
 source "./helpers.sh"
 
 debian_timezone_code () {

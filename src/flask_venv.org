@@ -45,6 +45,9 @@ from dagger import function
   : bin/flask exists
 
 * Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
 
   #+begin_src bash :tangle ../tests/flask_venv.sh :noweb yes :cache no
   <<init>>

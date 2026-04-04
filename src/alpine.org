@@ -213,6 +213,9 @@ from dagger import dag, function
   : Python 3.12.12
 
 * Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
 
   #+begin_src bash :tangle ../tests/alpine.sh :noweb yes :cache no
   <<init>>

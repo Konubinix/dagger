@@ -1,5 +1,4 @@
 # [[file:../src/dind.org::*Test script][Test script:1]]
-ROOT='/home/sam/prog/dagger'
 source "./helpers.sh"
 
 dind_docker_installed_code () {

@@ -547,6 +547,9 @@ popd > /dev/null
    #+end_src
 
 * Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
 
   #+begin_src bash :tangle ../tests/ralph.sh :noweb yes :cache no
   <<init>>

@@ -1,5 +1,4 @@
 # [[file:../src/distroless.org::*Test script][Test script:1]]
-ROOT='/home/sam/prog/dagger'
 source "./helpers.sh"
 
 distroless_python3_code () {
