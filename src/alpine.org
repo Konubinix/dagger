@@ -3,7 +3,7 @@
 :END:
 #+TITLE: Lightweight French-timezone containers
 #+LANGUAGE: en
-#+PROPERTY: header-args:python :tangle ../src/lib/alpine.py
+#+PROPERTY: header-args:python :tangle lib/alpine.py
 #+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 6b362c1c-840e-414f-ac4e-3a71451a6dff
 
 I work on services deployed in France. I need containers where logs

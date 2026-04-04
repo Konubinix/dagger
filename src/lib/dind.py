@@ -1,4 +1,4 @@
-# [[file:../../doc/dind.org::+begin_src python][No heading:2]]
+# [[file:../dind.org::+begin_src python][No heading:2]]
 import dagger
 from dagger import dag, function
 
@@ -20,7 +20,7 @@ _DOCKERD_START = (
 # No heading:2 ends here
 
 
-# [[file:../../doc/dind.org::*Preparing a DinD-capable container][Preparing a DinD-capable container:1]]
+# [[file:../dind.org::*Preparing a DinD-capable container][Preparing a DinD-capable container:1]]
 @function
 def dind_container(
     self,
@@ -70,7 +70,7 @@ def dind_container(
 # Preparing a DinD-capable container:1 ends here
 
 
-# [[file:../../doc/dind.org::*Running commands with dockerd][Running commands with dockerd:1]]
+# [[file:../dind.org::*Running commands with dockerd][Running commands with dockerd:1]]
 @function
 def dind_with_docker(
     self,

@@ -3,7 +3,7 @@
 # Tangle org files without requiring personal Emacs configuration.
 # Usage:
 #   ./tangle.sh                          # tangle all org files with :tangle directives
-#   ./tangle.sh doc/foo.org    # tangle a specific file
+#   ./tangle.sh src/foo.org    # tangle a specific file
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -58,7 +58,7 @@ tangle_file() {
 }
 
 if [ $# -eq 0 ]; then
-    for f in "$SCRIPT_DIR"/readme.org "$SCRIPT_DIR"/doc/*.org "$SCRIPT_DIR"/tests/*.org; do
+    for f in "$SCRIPT_DIR"/readme.org "$SCRIPT_DIR"/src/*.org "$SCRIPT_DIR"/tests/*.org; do
         [ -f "$f" ] && grep -q ':tangle' "$f" && tangle_file "$f" || true
     done
 else

@@ -1,10 +1,10 @@
-# [[file:../../doc/distroless.org::+begin_src python][No heading:2]]
+# [[file:../distroless.org::+begin_src python][No heading:2]]
 import dagger
 from dagger import dag, function
 # No heading:2 ends here
 
 
-# [[file:../../doc/distroless.org::*Setting the timezone on distroless][Setting the timezone on distroless:1]]
+# [[file:../distroless.org::*Setting the timezone on distroless][Setting the timezone on distroless:1]]
 @function
 def distroless_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
     """Copy Europe/Paris localtime into a distroless container."""
@@ -14,7 +14,7 @@ def distroless_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
 # Setting the timezone on distroless:1 ends here
 
 
-# [[file:../../doc/distroless.org::*Distroless Python 3][Distroless Python 3:1]]
+# [[file:../distroless.org::*Distroless Python 3][Distroless Python 3:1]]
 @function
 def distroless_python3_debian(self) -> dagger.Container:
     """Distroless python3 with Europe/Paris timezone."""
@@ -27,7 +27,7 @@ def distroless_python3_debian(self) -> dagger.Container:
 # Distroless Python 3:1 ends here
 
 
-# [[file:../../doc/distroless.org::*Distroless static][Distroless static:1]]
+# [[file:../distroless.org::*Distroless static][Distroless static:1]]
 @function
 def distroless_debian(self) -> dagger.Container:
     """Distroless static with Europe/Paris timezone."""

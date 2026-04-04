@@ -1,6 +1,6 @@
 #+TITLE: Minimal production images
 #+LANGUAGE: en
-#+PROPERTY: header-args:python :tangle ../src/lib/distroless.py
+#+PROPERTY: header-args:python :tangle lib/distroless.py
 #+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 7ee378ed-afd5-4298-9618-5db12e00c618
 
 For production, I want the smallest possible attack surface. Distroless

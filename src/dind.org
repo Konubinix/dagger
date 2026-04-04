@@ -3,7 +3,7 @@
 :END:
 #+TITLE: Docker inside containers
 #+LANGUAGE: en
-#+PROPERTY: header-args:python :tangle ../src/lib/dind.py
+#+PROPERTY: header-args:python :tangle lib/dind.py
 #+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 22cbb8e5-328a-4eef-bb0d-ca8ad0a724bb
 
 Some CI pipelines and integration tests need to build or run Docker

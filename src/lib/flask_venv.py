@@ -1,10 +1,10 @@
-# [[file:../../doc/flask_venv.org::+begin_src python][No heading:2]]
+# [[file:../flask_venv.org::+begin_src python][No heading:2]]
 import dagger
 from dagger import function
 # No heading:2 ends here
 
 
-# [[file:../../doc/flask_venv.org::*A Flask virtualenv as a directory artifact][A Flask virtualenv as a directory artifact:1]]
+# [[file:../flask_venv.org::*A Flask virtualenv as a directory artifact][A Flask virtualenv as a directory artifact:1]]
 @function
 def flask_venv(self, packages: str = "") -> dagger.Directory:
     """Debian python user venv with flask, exported as directory artifact."""

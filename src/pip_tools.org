@@ -3,7 +3,7 @@
 :END:
 #+TITLE: Python dependency management
 #+LANGUAGE: en
-#+PROPERTY: header-args:python :tangle ../src/lib/pip_tools.py
+#+PROPERTY: header-args:python :tangle lib/pip_tools.py
 #+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 1c493c7b-141e-48c4-b132-a38197098f62
 
 I manage Python dependencies with =pip-tools= (=pip-compile= and

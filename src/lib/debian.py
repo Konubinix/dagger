@@ -1,10 +1,10 @@
-# [[file:../../doc/debian.org::+begin_src python][No heading:2]]
+# [[file:../debian.org::+begin_src python][No heading:2]]
 import dagger
 from dagger import dag, function
 # No heading:2 ends here
 
 
-# [[file:../../doc/debian.org::*Disabling automatic recommends][Disabling automatic recommends:1]]
+# [[file:../debian.org::*Disabling automatic recommends][Disabling automatic recommends:1]]
 @function
 def debian_no_auto_install(self, ctr: dagger.Container) -> dagger.Container:
     """Disable apt recommends and suggests."""
@@ -22,7 +22,7 @@ def debian_no_auto_install(self, ctr: dagger.Container) -> dagger.Container:
 # Disabling automatic recommends:1 ends here
 
 
-# [[file:../../doc/debian.org::*Setting the timezone on Debian][Setting the timezone on Debian:1]]
+# [[file:../debian.org::*Setting the timezone on Debian][Setting the timezone on Debian:1]]
 @function
 def debian_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
     """Set timezone to Europe/Paris on a Debian container."""
@@ -34,7 +34,7 @@ def debian_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
 # Setting the timezone on Debian:1 ends here
 
 
-# [[file:../../doc/debian.org::*Cleaning up apt caches][Cleaning up apt caches:1]]
+# [[file:../debian.org::*Cleaning up apt caches][Cleaning up apt caches:1]]
 @function
 def debian_apt_cleanup(self, ctr: dagger.Container) -> dagger.Container:
     """Clean apt caches."""
@@ -50,7 +50,7 @@ def debian_apt_cleanup(self, ctr: dagger.Container) -> dagger.Container:
 # Cleaning up apt caches:1 ends here
 
 
-# [[file:../../doc/debian.org::*A base Debian container][A base Debian container:1]]
+# [[file:../debian.org::*A base Debian container][A base Debian container:1]]
 @function
 def debian(self, extra_packages: str = "") -> dagger.Container:
     """Debian slim with Europe/Paris timezone, no auto-install, and optional extra packages."""
@@ -75,7 +75,7 @@ def debian(self, extra_packages: str = "") -> dagger.Container:
 # A base Debian container:1 ends here
 
 
-# [[file:../../doc/debian.org::*Debian with a default user][Debian with a default user:1]]
+# [[file:../debian.org::*Debian with a default user][Debian with a default user:1]]
 @function
 def debian_user(self, extra_packages: str = "") -> dagger.Container:
     """Debian with a default user."""
@@ -86,7 +86,7 @@ def debian_user(self, extra_packages: str = "") -> dagger.Container:
 # Debian with a default user:1 ends here
 
 
-# [[file:../../doc/debian.org::*Python with a user and virtualenv on Debian][Python with a user and virtualenv on Debian:1]]
+# [[file:../debian.org::*Python with a user and virtualenv on Debian][Python with a user and virtualenv on Debian:1]]
 @function
 def debian_python_user_venv(
     self,
@@ -105,7 +105,7 @@ def debian_python_user_venv(
 # Python with a user and virtualenv on Debian:1 ends here
 
 
-# [[file:../../doc/debian.org::*Extracting the Europe/Paris timezone file][Extracting the Europe/Paris timezone file:1]]
+# [[file:../debian.org::*Extracting the Europe/Paris timezone file][Extracting the Europe/Paris timezone file:1]]
 @function
 def debian_europe_paris(self) -> dagger.File:
     """Extract the Europe/Paris localtime file from Debian."""
@@ -118,7 +118,7 @@ def debian_europe_paris(self) -> dagger.File:
 # Extracting the Europe/Paris timezone file:1 ends here
 
 
-# [[file:../../doc/debian.org::*Creating a Python venv][Creating a Python venv:1]]
+# [[file:../debian.org::*Creating a Python venv][Creating a Python venv:1]]
 @function
 def python_venv(
     self,

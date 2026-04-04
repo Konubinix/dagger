@@ -1,6 +1,6 @@
 #+TITLE: Debian-based production containers
 #+LANGUAGE: en
-#+PROPERTY: header-args:python :tangle ../src/lib/debian.py
+#+PROPERTY: header-args:python :tangle lib/debian.py
 #+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session b11767de-1b79-4370-9d47-fedea7b2fdaa
 
 Some of my services need libraries or tools that are only well-packaged

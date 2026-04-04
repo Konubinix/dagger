@@ -1,10 +1,10 @@
-# [[file:../../doc/user.org::+begin_src python][No heading:2]]
+# [[file:../user.org::+begin_src python][No heading:2]]
 import dagger
 from dagger import function
 # No heading:2 ends here
 
 
-# [[file:../../doc/user.org::*Creating a user with groups and sudo][Creating a user with groups and sudo:1]]
+# [[file:../user.org::*Creating a user with groups and sudo][Creating a user with groups and sudo:1]]
 @function
 def setup_user(
     self,
@@ -70,7 +70,7 @@ def setup_user(
 # Creating a user with groups and sudo:1 ends here
 
 
-# [[file:../../doc/user.org::*Switching to a user][Switching to a user:1]]
+# [[file:../user.org::*Switching to a user][Switching to a user:1]]
 @function
 def as_user(
     self,
@@ -89,7 +89,7 @@ def as_user(
 # Switching to a user:1 ends here
 
 
-# [[file:../../doc/user.org::*The full combo: create + switch][The full combo: create + switch:1]]
+# [[file:../user.org::*The full combo: create + switch][The full combo: create + switch:1]]
 @function
 def use_user(
     self,
@@ -108,7 +108,7 @@ def use_user(
 # The full combo: create + switch:1 ends here
 
 
-# [[file:../../doc/user.org::*Writing environment variables to the user's profile][Writing environment variables to the user's profile:1]]
+# [[file:../user.org::*Writing environment variables to the user's profile][Writing environment variables to the user's profile:1]]
 @function
 def user_write_env(
     self,

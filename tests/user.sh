@@ -1,4 +1,4 @@
-# [[file:../doc/user.org::*Test script][Test script:1]]
+# [[file:../src/user.org::*Test script][Test script:1]]
 ROOT='/home/sam/prog/dagger'
 source "./helpers.sh"
 

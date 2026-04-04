@@ -1,10 +1,10 @@
-# [[file:../../doc/alpine.org::+begin_src python][No heading:2]]
+# [[file:../alpine.org::+begin_src python][No heading:2]]
 import dagger
 from dagger import dag, function
 # No heading:2 ends here
 
 
-# [[file:../../doc/alpine.org::*Setting the timezone on Alpine][Setting the timezone on Alpine:1]]
+# [[file:../alpine.org::*Setting the timezone on Alpine][Setting the timezone on Alpine:1]]
 @function
 def alpine_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
     """Set timezone to Europe/Paris on an Alpine container."""
@@ -23,7 +23,7 @@ def alpine_tz_fr(self, ctr: dagger.Container) -> dagger.Container:
 # Setting the timezone on Alpine:1 ends here
 
 
-# [[file:../../doc/alpine.org::*A base Alpine container with optional extra packages][A base Alpine container with optional extra packages:1]]
+# [[file:../alpine.org::*A base Alpine container with optional extra packages][A base Alpine container with optional extra packages:1]]
 @function
 def alpine(self, extra_packages: str = "") -> dagger.Container:
     """Alpine 3.23 with Europe/Paris timezone and optional extra packages."""
@@ -43,7 +43,7 @@ def alpine(self, extra_packages: str = "") -> dagger.Container:
 # A base Alpine container with optional extra packages:1 ends here
 
 
-# [[file:../../doc/alpine.org::*A non-root user for safer workflows][A non-root user for safer workflows:1]]
+# [[file:../alpine.org::*A non-root user for safer workflows][A non-root user for safer workflows:1]]
 @function
 def alpine_user(
     self,
@@ -58,7 +58,7 @@ def alpine_user(
 # A non-root user for safer workflows:1 ends here
 
 
-# [[file:../../doc/alpine.org::*Timezone artifacts for other containers][Timezone artifacts for other containers:1]]
+# [[file:../alpine.org::*Timezone artifacts for other containers][Timezone artifacts for other containers:1]]
 @function
 def alpine_tz(self) -> dagger.Directory:
     """Extract /etc/localtime and /etc/timezone from Alpine as artifacts."""
@@ -73,7 +73,7 @@ def alpine_tz(self) -> dagger.Directory:
 # Timezone artifacts for other containers:1 ends here
 
 
-# [[file:../../doc/alpine.org::*Python on Alpine][Python on Alpine:1]]
+# [[file:../alpine.org::*Python on Alpine][Python on Alpine:1]]
 @function
 def alpine_python(self, extra_packages: str = "") -> dagger.Container:
     """Alpine with python3 and pip."""
@@ -83,7 +83,7 @@ def alpine_python(self, extra_packages: str = "") -> dagger.Container:
 # Python on Alpine:1 ends here
 
 
-# [[file:../../doc/alpine.org::*Python with a user and virtualenv][Python with a user and virtualenv:1]]
+# [[file:../alpine.org::*Python with a user and virtualenv][Python with a user and virtualenv:1]]
 @function
 def alpine_python_user_venv(
     self,

@@ -1,6 +1,6 @@
 #+TITLE: Ready-made Flask virtualenv
 #+LANGUAGE: en
-#+PROPERTY: header-args:python :tangle ../src/lib/flask_venv.py
+#+PROPERTY: header-args:python :tangle lib/flask_venv.py
 #+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session ccd73265-6368-4179-91a5-5c3135fccdb5
 
 I often build small Flask APIs. Instead of repeating the venv setup in

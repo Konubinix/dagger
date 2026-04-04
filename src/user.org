@@ -1,6 +1,6 @@
 #+TITLE: Non-root user workflows
 #+LANGUAGE: en
-#+PROPERTY: header-args:python :tangle ../src/lib/user.py
+#+PROPERTY: header-args:python :tangle lib/user.py
 #+PROPERTY: header-args:bash   :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 8042a222-4aac-4682-9042-7dee49fd9b21
 
 Running containers as root is a security risk. I need reusable helpers

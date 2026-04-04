@@ -3,7 +3,7 @@
 # Execute org-babel blocks and save results.
 # Usage:
 #   ./run.sh                    # run all doc org files
-#   ./run.sh doc/foo.org        # run a specific file
+#   ./run.sh src/foo.org        # run a specific file
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -18,7 +18,7 @@ run_file() {
 }
 
 if [ $# -eq 0 ]; then
-    for f in "$SCRIPT_DIR"/doc/*.org; do
+    for f in "$SCRIPT_DIR"/src/*.org; do
         [ -f "$f" ] && run_file "$f"
     done
 else

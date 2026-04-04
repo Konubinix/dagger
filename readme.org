@@ -17,28 +17,28 @@ org files and are tangled into Python modules and shell test scripts.
 * Use cases
 
   Most services I deploy run in France, so the first thing I need is a
-  container with the correct timezone. [[file:doc/alpine.org][Alpine]] is my default base image —
+  container with the correct timezone. [[file:src/alpine.org][Alpine]] is my default base image —
   it's small and fast to pull. When I need more packages or better
-  compatibility with native libraries, I reach for [[file:doc/debian.org][Debian]] instead.
+  compatibility with native libraries, I reach for [[file:src/debian.org][Debian]] instead.
 
   For production, I want the smallest possible attack surface.
-  [[file:doc/distroless.org][Distroless]] images have no shell and no package manager — just the
+  [[file:src/distroless.org][Distroless]] images have no shell and no package manager — just the
   runtime and the timezone file copied from Debian.
 
-  Running as root inside containers is a bad habit. The [[file:doc/user.org][user helpers]]
+  Running as root inside containers is a bad habit. The [[file:src/user.org][user helpers]]
   let me create a non-root user with optional sudo and group memberships
   in a single call, on any base image.
 
   Python projects need virtualenvs. The Alpine and Debian targets can
   set one up automatically, but sometimes I need standalone tools:
-  [[file:doc/pip_tools.org][pip-tools]] for dependency management, or a [[file:doc/flask_venv.org][pre-built Flask venv]] I can
+  [[file:src/pip_tools.org][pip-tools]] for dependency management, or a [[file:src/flask_venv.org][pre-built Flask venv]] I can
   copy into a final image.
 
-  Some CI jobs need to build Docker images. [[file:doc/dind.org][Docker-in-Docker]] handles
+  Some CI jobs need to build Docker images. [[file:src/dind.org][Docker-in-Docker]] handles
   the cgroup setup, tmpfs mounts, and dockerd lifecycle so I don't have
   to think about it.
 
-  All of this is verified by [[file:doc/testing.org][automated tests]] that exercise every target
+  All of this is verified by [[file:tests/testing.org][automated tests]] that exercise every target
   via =dagger call=.
 
 * Dagger concepts
@@ -388,7 +388,7 @@ org files and are tangled into Python modules and shell test scripts.
   # Tangle org files without requiring personal Emacs configuration.
   # Usage:
   #   ./tangle.sh                          # tangle all org files with :tangle directives
-  #   ./tangle.sh doc/foo.org    # tangle a specific file
+  #   ./tangle.sh src/foo.org    # tangle a specific file
   set -eu
 
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -443,7 +443,7 @@ org files and are tangled into Python modules and shell test scripts.
   }
 
   if [ $# -eq 0 ]; then
-      for f in "$SCRIPT_DIR"/readme.org "$SCRIPT_DIR"/doc/*.org "$SCRIPT_DIR"/tests/*.org; do
+      for f in "$SCRIPT_DIR"/readme.org "$SCRIPT_DIR"/src/*.org "$SCRIPT_DIR"/tests/*.org; do
           [ -f "$f" ] && grep -q ':tangle' "$f" && tangle_file "$f" || true
       done
   else
@@ -495,7 +495,7 @@ org files and are tangled into Python modules and shell test scripts.
     # Execute org-babel blocks and save results.
     # Usage:
     #   ./run.sh                    # run all doc org files
-    #   ./run.sh doc/foo.org        # run a specific file
+    #   ./run.sh src/foo.org        # run a specific file
     set -eu
 
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -510,7 +510,7 @@ org files and are tangled into Python modules and shell test scripts.
     }
 
     if [ $# -eq 0 ]; then
-        for f in "$SCRIPT_DIR"/doc/*.org; do
+        for f in "$SCRIPT_DIR"/src/*.org; do
             [ -f "$f" ] && run_file "$f"
         done
     else
