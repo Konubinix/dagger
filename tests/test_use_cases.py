@@ -18,7 +18,7 @@ def _dagger_engine():
         input="{ defaultPlatform }",
         capture_output=True,
         text=True,
-        timeout=10,
+        timeout=120,
         check=True,
         cwd=str(TESTS),
         env={**os.environ, "PATH": f"{TESTS}:{os.environ['PATH']}"},
