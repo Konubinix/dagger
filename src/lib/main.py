@@ -49,6 +49,10 @@ class Lib:
     alpine_python_user_venv = alpine_python_user_venv
 
     # Debian
+    @property
+    def debian_tag(self) -> str:
+        return f"{self.debian_version}.{self.debian_min_version}-slim"
+
     debian_no_auto_install = debian_no_auto_install
     debian_tz_fr = debian_tz_fr
     debian_apt_cleanup = debian_apt_cleanup

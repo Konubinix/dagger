@@ -56,8 +56,7 @@ def debian_apt_cleanup(self, ctr: dagger.Container) -> dagger.Container:
 @function
 def debian(self, extra_packages: list[str] = ()) -> dagger.Container:
     """Debian slim with Europe/Paris timezone, no auto-install, and optional extra packages."""
-    tag = f"{self.debian_version}.{self.debian_min_version}-slim"
-    ctr = dag.container().from_(f"debian:{tag}")
+    ctr = dag.container().from_(f"debian:{self.debian_tag}")
     ctr = self.debian_no_auto_install(ctr)
     ctr = self.debian_tz_fr(ctr)
     if extra_packages:
@@ -112,9 +111,10 @@ def debian_python_user_venv(
 @function
 def debian_europe_paris(self) -> dagger.File:
     """Extract the Europe/Paris localtime file from Debian."""
-    tag = f"{self.debian_version}.{self.debian_min_version}-slim"
     return (
-        dag.container().from_(f"debian:{tag}").file("/usr/share/zoneinfo/Europe/Paris")
+        dag.container()
+        .from_(f"debian:{self.debian_tag}")
+        .file("/usr/share/zoneinfo/Europe/Paris")
     )
 
 
