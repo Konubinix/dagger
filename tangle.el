@@ -35,9 +35,9 @@
 (add-to-list 'org-babel-default-header-args:python
              '(:preserve-indentation . t))
 
-;; Load check-result noweb macro support (shared with interactive Emacs
+;; Load reproducibility helpers (shared with interactive Emacs
 ;; via .dir-locals.el).
-(load (expand-file-name "check-result.el"
+(load (expand-file-name "reproducibility-helpers.el"
          (file-name-directory (or load-file-name buffer-file-name)))
       t)
 

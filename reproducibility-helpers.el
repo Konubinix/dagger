@@ -1,5 +1,5 @@
-;; [[file:TECHNICAL.org::*Check-result noweb macro][Check-result noweb macro:1]]
-;;; check-result.el --- Noweb macros for test scripts
+;; [[file:TECHNICAL.org::*Reproducibility helpers][Reproducibility helpers:1]]
+;;; reproducibility-helpers.el --- Noweb macros and post-tangle hooks
 
 (unless (fboundp 'first) (defalias 'first #'car))
 (unless (fboundp 'second) (defalias 'second #'cadr))
@@ -91,5 +91,13 @@ Handles both `: value` and `#+begin_example...#+end_example` formats."
      parent-buffer)))
 (advice-add 'org-babel-expand-noweb-references :around 'konix/org-babel-expand-noweb-references/add-check-result)
 
-;;; check-result.el ends here
-;; Check-result noweb macro:1 ends here
+(defun daggerlib-ruff-format-after-tangle ()
+  "Run ruff format on the current buffer if it is a Python file."
+  (when (string-match-p "\\.py\\'" (buffer-file-name))
+    (shell-command (format "ruff format --quiet '%s'" (buffer-file-name)))
+    (revert-buffer t t t)))
+
+(add-hook 'org-babel-post-tangle-hook #'daggerlib-ruff-format-after-tangle :append)
+
+;;; reproducibility-helpers.el ends here
+;; Reproducibility helpers:1 ends here

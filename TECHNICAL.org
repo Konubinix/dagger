@@ -116,7 +116,7 @@ programming setup, tangling pipeline, and editor configuration. See
       . ((org-babel-default-header-args:python
           . ((:preserve-indentation . t)))
          (org-id-link-to-org-use-id . nil)
-         (eval . (load (expand-file-name "check-result.el"
+         (eval . (load (expand-file-name "reproducibility-helpers.el"
                          (locate-dominating-file default-directory ".dir-locals.el"))
                        t)))))
   #+end_src
@@ -137,7 +137,10 @@ programming setup, tangling pipeline, and editor configuration. See
   ./tangle.sh
   #+end_src
 
-* Check-result noweb macro
+* Reproducibility helpers
+
+  Helpers loaded both by =tangle.el= (batch) and =.dir-locals.el=
+  (interactive), so tangling works the same way everywhere.
 
   The =check-result= and =check-all= noweb macros transform test script
   blocks during tangling. =check-result(name)= expands into shell
@@ -146,11 +149,11 @@ programming setup, tangling pipeline, and editor configuration. See
   every named bash block in the file (except =init=), so test scripts
   don't need to list blocks manually.
 
-  This is loaded both by =tangle.el= (batch) and =.dir-locals.el=
-  (interactive), so tangling works the same way everywhere.
+  The ruff post-tangle hook ensures that Python files are formatted
+  identically whether tangled from the command line or interactively.
 
-  #+begin_src emacs-lisp :tangle check-result.el
-  ;;; check-result.el --- Noweb macros for test scripts
+  #+begin_src emacs-lisp :tangle reproducibility-helpers.el
+  ;;; reproducibility-helpers.el --- Noweb macros and post-tangle hooks
 
   (unless (fboundp 'first) (defalias 'first #'car))
   (unless (fboundp 'second) (defalias 'second #'cadr))
@@ -242,7 +245,15 @@ programming setup, tangling pipeline, and editor configuration. See
        parent-buffer)))
   (advice-add 'org-babel-expand-noweb-references :around 'konix/org-babel-expand-noweb-references/add-check-result)
 
-  ;;; check-result.el ends here
+  (defun daggerlib-ruff-format-after-tangle ()
+    "Run ruff format on the current buffer if it is a Python file."
+    (when (string-match-p "\\.py\\'" (buffer-file-name))
+      (shell-command (format "ruff format --quiet '%s'" (buffer-file-name)))
+      (revert-buffer t t t)))
+
+  (add-hook 'org-babel-post-tangle-hook #'daggerlib-ruff-format-after-tangle :append)
+
+  ;;; reproducibility-helpers.el ends here
   #+end_src
 
 * Tangle configuration
@@ -294,9 +305,9 @@ programming setup, tangling pipeline, and editor configuration. See
   (add-to-list 'org-babel-default-header-args:python
                '(:preserve-indentation . t))
 
-  ;; Load check-result noweb macro support (shared with interactive Emacs
+  ;; Load reproducibility helpers (shared with interactive Emacs
   ;; via .dir-locals.el).
-  (load (expand-file-name "check-result.el"
+  (load (expand-file-name "reproducibility-helpers.el"
            (file-name-directory (or load-file-name buffer-file-name)))
         t)
 
