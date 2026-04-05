@@ -8,4 +8,6 @@ jobs:
       - uses: dagger/dagger-for-github@v8.4.1
         with:
           version: "0.20.3"
-      - run: dagger call dev check
+      - run: ./run.sh
+      - run: ./tangle.sh
+      - run: ./test.sh

@@ -16,8 +16,8 @@ There are three ways to use the tooling, kept in sync:
    thin wrappers around =dagger call dev ...=. This is what you use
    for daily work. Reproducible, no nix needed.
 
-3. *Mode 3 — CI (dagger):* Same as mode 2. CI runs
-   =dagger call dev check=.
+3. *Mode 3 — CI:* Same as mode 2. CI runs
+   =./run.sh && ./tangle.sh && ./test.sh=.
 
 The bootstrap flow:
 
@@ -60,8 +60,6 @@ ORG_PIN = "1025e3b49a98f175b124dbccd774918360fe7e11"
 
   =test= runs the full test suite. The test scripts call
   =dagger call=, so nested dagger access is required.
-
-  =check= is the full CI pipeline: tangle then test.
 
   #+begin_src python
   @object_type
@@ -201,12 +199,4 @@ ORG_PIN = "1025e3b49a98f175b124dbccd774918360fe7e11"
               .stdout()
           )
 
-      @function
-      async def check(
-          self,
-          source: Annotated[dagger.Directory, DefaultPath(".")],
-      ) -> str:
-          """Tangle then test — the full pipeline."""
-          tangled = await self.tangle(source=source)
-          return await self.test(source=tangled)
   #+end_src

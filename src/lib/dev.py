@@ -166,14 +166,5 @@ class Dev:
             .stdout()
         )
 
-    @function
-    async def check(
-        self,
-        source: Annotated[dagger.Directory, DefaultPath(".")],
-    ) -> str:
-        """Tangle then test — the full pipeline."""
-        tangled = await self.tangle(source=source)
-        return await self.test(source=tangled)
-
 
 # Dev class:1 ends here
