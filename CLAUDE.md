@@ -34,4 +34,5 @@ Never trust yours intuition. Always double check.
 
 Explicitly providing --source=. is an antipattern. Use DefaultPath instead.
 
-Always start by running tests to have a baseline.
+Always start by running tests to have a baseline. Never try to add a feature if
+the baseline is not totally green.
