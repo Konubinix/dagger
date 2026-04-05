@@ -26,7 +26,7 @@ source "./helpers.sh"
   dagger call dind-container with-exec --args="docker","--version" stdout
   #+end_src
 
-  #+RESULTS[]: dind_docker_version
+  #+RESULTS[95b3561231895a5ad0ea09a8bffdc6570d4831ce]: dind_docker_version
   : Docker version 29.3.1, build c2be9cc
 
 * Running the integration tests with a live Docker daemon
@@ -40,7 +40,7 @@ source "./helpers.sh"
   dagger call dind-with-docker --cmd="docker info --format '{{.OSType}}'" stdout
   #+end_src
 
-  #+RESULTS[]: dind_docker_info
+  #+RESULTS[5ee80c95a6828f8154e9c4dd28a7f1d6ccb7ec5f]: dind_docker_info
   : linux
 
 * Test script                                                      :noexport:

@@ -29,7 +29,7 @@ source "./helpers.sh"
   ls "$TMP/out" | sort
   #+end_src
 
-  #+RESULTS[]: tz_artifacts
+  #+RESULTS[f2500b1d9138f8f2c544c3d9a3556bb4cf873bf3]: tz_artifacts
   : localtime
   : timezone
 
@@ -44,7 +44,7 @@ source "./helpers.sh"
   dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
   #+end_src
 
-  #+RESULTS[]: distroless_python
+  #+RESULTS[14d26b6f6239799c78ab602157c822a8c067d869]: distroless_python
   : True
 
 * The static variant for compiled services
@@ -59,7 +59,7 @@ source "./helpers.sh"
   test -s "$TMP/out2/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[]: distroless_static
+  #+RESULTS[b09769f419af6c9241f3d4a6fb1f5799eba544d5]: distroless_static
   : non-empty
 
 * Test script                                                      :noexport:

@@ -54,7 +54,7 @@ from dagger import dag, function
   dagger call alpine with-exec --args="cat","/etc/timezone" stdout
   #+end_src
 
-  #+RESULTS[abbb5ac1f2df7c58381e1b98e106f7900b40c9d8]: alpine_timezone
+  #+RESULTS[6285cc8d866abdbf20f8af3c68841ce7eaa6270c]: alpine_timezone
   : Europe/Paris
 
 * A base Alpine container with optional extra packages
@@ -88,7 +88,7 @@ from dagger import dag, function
   dagger call alpine --extra-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
-  #+RESULTS[9b35b28e345e8954f20a8d31b358a64c740de547]: alpine_extra_packages
+  #+RESULTS[9672241fbf1dcd6682c42c269a24fd2b8c2725cf]: alpine_extra_packages
   : /usr/bin/curl
 
 * A non-root user for safer workflows
@@ -116,7 +116,7 @@ from dagger import dag, function
   dagger call alpine-user with-exec --args="id","sam" stdout
   #+end_src
 
-  #+RESULTS[4fe1fd34b0aef9c1db0228e4c260176f36b472db]: alpine_user_check
+  #+RESULTS[a88fe2bffd894b6e3e8116b0acbf05d468a06775]: alpine_user_check
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
 
 * Timezone artifacts for other containers
@@ -150,7 +150,7 @@ from dagger import dag, function
   ls "$TMP/out" | sort
   #+end_src
 
-  #+RESULTS[8c6845b89dfd5a4abf8ef529b9af859615401f28]: alpine_tz_export
+  #+RESULTS[da27b1744f7bd1b8ad6f3712e61b9b99f606ef97]: alpine_tz_export
   : localtime
   : timezone
 
@@ -173,7 +173,7 @@ from dagger import dag, function
   dagger call alpine-python with-exec --args="python3","--version" stdout
   #+end_src
 
-  #+RESULTS[8b4b461b8d714a41a7b385206cbc863d8ccbe797]: alpine_python_check
+  #+RESULTS[2aa5fa288b922592ae58cf5d7d5dafbe52743182]: alpine_python_check
   : Python 3.12.12
 
 * Python with a user and virtualenv
@@ -209,7 +209,7 @@ from dagger import dag, function
   dagger call alpine-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
   #+end_src
 
-  #+RESULTS[67ca950880dce6c0bbbf98d236de2a0aef16fda4]: alpine_python_user_venv_check
+  #+RESULTS[a21781cec8839610553947b7d2977c5a79084466]: alpine_python_user_venv_check
   : Python 3.12.12
 
 * Test script                                                      :noexport:

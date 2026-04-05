@@ -311,7 +311,7 @@ _RALPH_WRAPPER_SH = (Path(__file__).parent / "ralph-wrapper.sh").read_text()
   dagger call debian --extra-packages="python3-yaml" with-file --path=/tmp/ralph.yml --source="${ROOT}/src/ralph.yml" with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
   #+end_src
 
-  #+RESULTS[b94a54ae73b870b26f0221f35ffd1963c5d6619f]: ralph_yml_valid
+  #+RESULTS[574f46501caeeab8dcbeb586afb3aa2c562f8623]: ralph_yml_valid
   : work.start
   : 2
 
@@ -323,7 +323,7 @@ _RALPH_WRAPPER_SH = (Path(__file__).parent / "ralph-wrapper.sh").read_text()
   ralph-log-filter < "${ROOT}/tests/ralph_log_sample.txt" 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
   #+end_src
 
-  #+RESULTS[7198116aa837f73c1dc69010672994cbedf0cc2a]: log_filter_output
+  #+RESULTS[bc8ed77e68d1e3e5554116658f925e49ae4a275f]: log_filter_output
   : [ralph] starting ralph...
   : [ralph] ralph started (PID 16)
   : [file] Read: /tmp/ralph-workdir/ralph.yml

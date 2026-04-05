@@ -94,7 +94,7 @@ from dagger import dag, function
   dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout
   #+end_src
 
-  #+RESULTS[363a09a5b9871f9ce1206936a6c6e7e0cfb9baf2]: debian_timezone
+  #+RESULTS[9af9247a114269e1cc7e21069077778461961a87]: debian_timezone
   : /usr/share/zoneinfo/Europe/Paris
 
   #+NAME: debian_no_recommends
@@ -102,7 +102,7 @@ from dagger import dag, function
   dagger call debian with-exec --args="cat","/etc/apt/apt.conf.d/01norecommend" stdout
   #+end_src
 
-  #+RESULTS[a4326c33040bf0571744f01a0aba4b3750ec6d6b]: debian_no_recommends
+  #+RESULTS[41ec46795ff2efc39919305899ba5b85cf80320e]: debian_no_recommends
   : APT::Install-Recommends "0";
   : APT::Install-Suggests "0";
 
@@ -111,7 +111,7 @@ from dagger import dag, function
   dagger call debian --extra-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
-  #+RESULTS[50b0094eeb287389d92b9e3b8ad7598ee0959085]: debian_extra_packages
+  #+RESULTS[6053d6097656a94d3d680ab37a2e3d033e166b57]: debian_extra_packages
   : /usr/bin/curl
 
 * Debian with a default user
@@ -131,7 +131,7 @@ from dagger import dag, function
   dagger call debian-user with-exec --args="id","sam" stdout
   #+end_src
 
-  #+RESULTS[9c5cc8a355f0d356ac854ac42d2bc374d8460d8b]: debian_user_check
+  #+RESULTS[d1c769fc0d3deb2653978b404b5f8da13d819d60]: debian_user_check
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
 
 * Python with a user and virtualenv on Debian
@@ -160,7 +160,7 @@ from dagger import dag, function
   dagger call debian-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
   #+end_src
 
-  #+RESULTS[5e07e7890284d56c1ecc7f9ddd108a3edcaa068b]: debian_python_user_venv_check
+  #+RESULTS[ed4afca4883fddab45905885d918cc6252e6a597]: debian_python_user_venv_check
   : Python 3.13.5
 
 * Extracting the Europe/Paris timezone file
@@ -190,7 +190,7 @@ from dagger import dag, function
   test -s "$TMP/out/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[ab4f65bb56b17e0ddbe1024df29c5c38c21b4a54]: debian_europe_paris_export
+  #+RESULTS[e2021aa39a9f4fb83b93bc96ea6327cf92a726e2]: debian_europe_paris_export
   : non-empty
 
 * Creating a Python venv

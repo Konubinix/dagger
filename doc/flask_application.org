@@ -28,7 +28,7 @@ source "./helpers.sh"
   test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
   #+end_src
 
-  #+RESULTS[]: flask_venv_export
+  #+RESULTS[4d6af036b2191b4b53459915d56bfd636061d05f]: flask_venv_export
   : bin/flask exists
 
 * Adding gunicorn for production
@@ -42,7 +42,7 @@ source "./helpers.sh"
   test -f "$TMP/out2/bin/gunicorn" && echo "bin/gunicorn exists"
   #+end_src
 
-  #+RESULTS[]: flask_with_gunicorn
+  #+RESULTS[10fa355b485f3fcdf3ad6e259efb5a830ee8395f]: flask_with_gunicorn
   : bin/gunicorn exists
 
 * Test script                                                      :noexport:

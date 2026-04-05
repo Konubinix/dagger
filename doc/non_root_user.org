@@ -25,7 +25,7 @@ source "./helpers.sh"
   dagger call alpine-user with-exec --args="whoami" stdout
   #+end_src
 
-  #+RESULTS[]: alpine_user_whoami
+  #+RESULTS[89c71031de63f5053391e7e57e28575f1e65a8f1]: alpine_user_whoami
   : sam
 
 * The test runner needs a proper home directory
@@ -39,7 +39,7 @@ source "./helpers.sh"
   dagger call alpine-user with-exec --args="pwd" stdout
   #+end_src
 
-  #+RESULTS[]: alpine_user_home
+  #+RESULTS[f51a8de975a7555410afcbc99e72571308db23eb]: alpine_user_home
   : /home/sam
 
 * Matching the production UID
@@ -53,7 +53,7 @@ source "./helpers.sh"
   dagger call alpine-user with-exec --args="id","sam" stdout
   #+end_src
 
-  #+RESULTS[]: alpine_user_id
+  #+RESULTS[4e8731433faba3325b6be8079340154a5f35aaa4]: alpine_user_id
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
 
 * Some tests need Debian for native libraries
@@ -66,7 +66,7 @@ source "./helpers.sh"
   dagger call debian-user with-exec --args="id","sam" stdout
   #+end_src
 
-  #+RESULTS[]: debian_user_id
+  #+RESULTS[b48de886e2dec02c568ecf11d6374a2f03d2556f]: debian_user_id
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
 
 * Test script                                                      :noexport:

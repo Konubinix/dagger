@@ -26,7 +26,7 @@ source "./helpers.sh"
   dagger call alpine with-exec --args="cat","/etc/timezone" stdout
   #+end_src
 
-  #+RESULTS[]: alpine_timezone
+  #+RESULTS[78270fbdde9402f2fa1e45186660200752ec9822]: alpine_timezone
   : Europe/Paris
 
 * The collector needs curl to fetch remote configs
@@ -39,7 +39,7 @@ source "./helpers.sh"
   dagger call alpine --extra-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
-  #+RESULTS[]: alpine_extra_packages
+  #+RESULTS[2f576cdcb1b2189be34dc548c79797bcd6c4acac]: alpine_extra_packages
   : /usr/bin/curl
 
 * Switching to Debian for the version with native extensions
@@ -53,7 +53,7 @@ source "./helpers.sh"
   dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout
   #+end_src
 
-  #+RESULTS[]: debian_timezone
+  #+RESULTS[42fa980215ebfc552cc6dead2c7b243a398517ec]: debian_timezone
   : /usr/share/zoneinfo/Europe/Paris
 
   The image stays lean because apt recommends are disabled — no
@@ -64,7 +64,7 @@ source "./helpers.sh"
   dagger call debian with-exec --args="cat","/etc/apt/apt.conf.d/01norecommend" stdout
   #+end_src
 
-  #+RESULTS[]: debian_no_recommends
+  #+RESULTS[44eb6505a40e0d8ee0162ff541a74f851ad46ab9]: debian_no_recommends
   : APT::Install-Recommends "0";
   : APT::Install-Suggests "0";
 
@@ -82,7 +82,7 @@ source "./helpers.sh"
   dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
   #+end_src
 
-  #+RESULTS[]: distroless_python3
+  #+RESULTS[4c01458b02761cf28f41c4c354b36e7327da6548]: distroless_python3
   : True
 
   For the compiled Go version:
@@ -93,7 +93,7 @@ source "./helpers.sh"
   test -s "$TMP/out/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[]: distroless_static_tz
+  #+RESULTS[425ea00ba3ac80f43be4b6559814867744f9dee2]: distroless_static_tz
   : non-empty
 
 * Test script                                                      :noexport:
