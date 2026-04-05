@@ -33,3 +33,5 @@ passed after your fix.
 Never trust yours intuition. Always double check.
 
 Explicitly providing --source=. is an antipattern. Use DefaultPath instead.
+
+Always start by running tests to have a baseline.
