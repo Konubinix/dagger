@@ -99,9 +99,9 @@ def debian_python_user_venv(
 ) -> dagger.Container:
     """Debian with python, user, and a virtualenv."""
     ctr = self.debian(extra_packages=["python3-venv"] + list(extra_packages))
-    ctr = self.use_user(ctr, groups=groups)
-    ctr = ctr.with_workdir(work_dir)
-    return self.python_venv(ctr, base=work_dir, packages=packages)
+    return self.python_user_venv(
+        ctr, groups=groups, packages=packages, work_dir=work_dir
+    )
 
 
 # Python with a user and virtualenv on Debian:1 ends here

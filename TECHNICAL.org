@@ -49,7 +49,7 @@ programming setup, tangling pipeline, and editor configuration. See
       debian_set_tz,
       debian_user,
   )
-  from .python import python_venv
+  from .python import python_user_venv, python_venv
   from .dind import dind_container, dind_with_docker
   from .distroless import distroless_debian, distroless_python3_debian, distroless_set_tz
   from .flask_venv import flask_venv
@@ -89,7 +89,10 @@ programming setup, tangling pipeline, and editor configuration. See
       debian_user = debian_user
       debian_python_user_venv = debian_python_user_venv
       debian_localtime = debian_localtime
+
+      # Python
       python_venv = python_venv
+      python_user_venv = python_user_venv
 
       # Distroless
       distroless_set_tz = distroless_set_tz

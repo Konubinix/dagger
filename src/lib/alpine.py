@@ -89,9 +89,9 @@ def alpine_python_user_venv(
 ) -> dagger.Container:
     """Alpine with python, user, and a virtualenv."""
     ctr = self.alpine_python(extra_packages=extra_packages)
-    ctr = self.use_user(ctr, groups=groups)
-    ctr = ctr.with_workdir(work_dir)
-    return self.python_venv(ctr, base=work_dir, packages=packages)
+    return self.python_user_venv(
+        ctr, groups=groups, packages=packages, work_dir=work_dir
+    )
 
 
 # Python with a user and virtualenv:1 ends here

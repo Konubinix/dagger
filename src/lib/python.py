@@ -31,3 +31,21 @@ def python_venv(
 
 
 # Creating a Python venv:1 ends here
+
+
+# [[file:../python.org::*Python with a user and virtualenv][Python with a user and virtualenv:1]]
+@function
+def python_user_venv(
+    self,
+    ctr: dagger.Container,
+    groups: list[str] = (),
+    packages: list[str] = (),
+    work_dir: str = "/app",
+) -> dagger.Container:
+    """Add a user, workdir, and virtualenv to a container that already has Python."""
+    ctr = self.use_user(ctr, groups=groups)
+    ctr = ctr.with_workdir(work_dir)
+    return self.python_venv(ctr, base=work_dir, packages=packages)
+
+
+# Python with a user and virtualenv:1 ends here
