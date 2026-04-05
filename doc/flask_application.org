@@ -1,0 +1,56 @@
+:PROPERTIES:
+:ID:       b564b33f-b2f1-4408-855f-738a48daffb6
+:END:
+#+TITLE: Shipping a webhook receiver
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session b89fbc88-ccd7-4144-8c63-ab84e0ab58a7
+
+I want to build a webhook receiver that listens for GitHub events and
+triggers deployments. It's a small Flask app — a single file with a
+few routes. I need to package it in a container, and I don't want to
+write the venv setup from scratch every time I start a new
+microservice like this.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+* Getting a ready-made Flask environment
+
+  The =flask-venv= target gives me a complete virtualenv with Flask
+  already installed, exported as a directory artifact. I can verify
+  that the =flask= command is available:
+
+  #+NAME: flask_venv_export
+  #+begin_src bash
+  dagger call flask-venv export --path="$TMP/out" > /dev/null
+  test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
+  #+end_src
+
+  #+RESULTS[]: flask_venv_export
+  : bin/flask exists
+
+* Adding gunicorn for production
+
+  In production, I don't use the Flask dev server — I need =gunicorn=
+  as the WSGI server. I can add it to the same venv:
+
+  #+NAME: flask_with_gunicorn
+  #+begin_src bash
+  dagger call flask-venv --packages=gunicorn export --path="$TMP/out2" > /dev/null
+  test -f "$TMP/out2/bin/gunicorn" && echo "bin/gunicorn exists"
+  #+end_src
+
+  #+RESULTS[]: flask_with_gunicorn
+  : bin/gunicorn exists
+
+* Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
+
+  #+begin_src bash :tangle ../tests/doc_flask_application.sh :noweb yes :cache no
+  <<init>>
+  check-all
+  #+end_src

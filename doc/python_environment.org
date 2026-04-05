@@ -1,0 +1,93 @@
+:PROPERTIES:
+:ID:       94ed590e-4465-490e-8610-ae0393d91c27
+:END:
+#+TITLE: Building a data pipeline CLI
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 9a21e068-5ba0-4e7d-9684-d27774472bd7
+
+I want to write a CLI that fetches CSV files from an SFTP server,
+transforms them, and loads them into a database. It's Python, and I
+need a reproducible environment where every developer on my team gets
+the same Python version and the same pinned dependencies.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+* Checking the Python version in the build environment
+
+  My pipeline uses =match= statements, so I need Python 3.10+. Let me
+  verify what Alpine gives me:
+
+  #+NAME: python_version
+  #+begin_src bash
+  dagger call alpine-python with-exec --args="python3","-c","import sys; v=sys.version_info; print('3.10+' if v.major*100+v.minor >= 310 else 'too old')" stdout
+  #+end_src
+
+  #+RESULTS[]: python_version
+  : 3.10+
+
+* Setting up the development container
+
+  Each developer clones the repo and runs the pipeline locally. I need
+  a container with Python, a virtualenv, and a non-root user — ready
+  to =pip install -e .=. Running Python from the venv verifies both
+  that the virtualenv exists and that the version is sufficient:
+
+  #+NAME: alpine_venv
+  #+begin_src bash
+  dagger call alpine-python-user-venv with-exec --args="/app/venv/bin/python","-c","import sys; v=sys.version_info; print('3.10+' if v.major*100+v.minor >= 310 else 'too old')" stdout
+  #+end_src
+
+  #+RESULTS[]: alpine_venv
+  : 3.10+
+
+* Installing the pipeline's dependencies
+
+  My pipeline depends on =requests= for the SFTP client wrapper. I
+  can bake dependencies into the container image:
+
+  #+NAME: venv_with_packages
+  #+begin_src bash
+  dagger call alpine-python-user-venv --packages=requests with-exec --args="python3","-c","import requests; print(requests.__name__)" stdout
+  #+end_src
+
+  #+RESULTS[]: venv_with_packages
+  : requests
+
+* When the pipeline needs native database drivers
+
+  The load step uses =psycopg2= to talk to PostgreSQL. That requires
+  =libpq-dev= and a C compiler, which are easier on Debian:
+
+  #+NAME: debian_venv
+  #+begin_src bash
+  dagger call debian-python-user-venv with-exec --args="/app/venv/bin/python","-c","import sys; v=sys.version_info; print('3.10+' if v.major*100+v.minor >= 310 else 'too old')" stdout
+  #+end_src
+
+  #+RESULTS[]: debian_venv
+  : 3.10+
+
+* Pinning dependencies with pip-tools
+
+  I don't want surprise upgrades breaking the pipeline at 3am. I use
+  =pip-compile= to lock all transitive dependencies:
+
+  #+NAME: pip_tools
+  #+begin_src bash
+  dagger call pip-tools with-exec --args="which","pip-compile" stdout
+  #+end_src
+
+  #+RESULTS[]: pip_tools
+  : /home/sam/.local/bin/pip-compile
+
+* Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
+
+  #+begin_src bash :tangle ../tests/doc_python_environment.sh :noweb yes :cache no
+  <<init>>
+  check-all
+  #+end_src

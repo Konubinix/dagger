@@ -1,0 +1,54 @@
+:PROPERTIES:
+:ID:       03cc924b-b9f8-4d17-bb01-6142fa69ef72
+:END:
+#+TITLE: Testing a container orchestrator
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session cba00a30-1a06-43b5-aabd-65dd44e3b137
+
+I'm writing a CLI that manages Docker containers — think a simplified
+docker-compose for a specific workflow. The integration tests need to
+actually build and run Docker containers, so the test environment
+itself needs a working Docker daemon inside the Dagger container.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+* Getting Docker installed in the test container
+
+  My test harness needs the =docker= CLI to verify that my
+  orchestrator creates the right containers. First, let me check
+  that Docker is available:
+
+  #+NAME: dind_docker_version
+  #+begin_src bash
+  dagger call dind-container with-exec --args="docker","--version" stdout
+  #+end_src
+
+  #+RESULTS[]: dind_docker_version
+  : Docker version 29.3.1, build c2be9cc
+
+* Running the integration tests with a live Docker daemon
+
+  Having the CLI installed isn't enough — my tests need a running
+  =dockerd= to talk to. The =dind-with-docker= target starts the
+  daemon with proper cgroup v2 setup and runs my command:
+
+  #+NAME: dind_docker_info
+  #+begin_src bash
+  dagger call dind-with-docker --cmd="docker info --format '{{.OSType}}'" stdout
+  #+end_src
+
+  #+RESULTS[]: dind_docker_info
+  : linux
+
+* Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
+
+  #+begin_src bash :tangle ../tests/doc_docker_in_docker.sh :noweb yes :cache no
+  <<init>>
+  check-all
+  #+end_src

@@ -1,0 +1,73 @@
+:PROPERTIES:
+:ID:       feaabe2a-b4da-4ff6-a8ec-c2eabb5ccc93
+:END:
+#+TITLE: Shipping a Python service to production
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session d0620fad-89cd-46ca-91b0-87e83de7b539
+
+I have a Python service that passed all its tests and I want to ship
+it. The build needs compilers and dev headers to install native
+dependencies, but in production I want the smallest possible image —
+no shell, no package manager, nothing an attacker could use. This is
+the classic multi-stage build: build in Debian, run in distroless.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+* Preparing timezone data for the production image
+
+  My production image is distroless — it has no =apt= or =apk= to
+  install timezone data. I extract the timezone files from Alpine
+  ahead of time, so I can inject them into the final image. My
+  service logs need correct French timestamps:
+
+  #+NAME: tz_artifacts
+  #+begin_src bash
+  dagger call alpine-tz export --path="$TMP/out" > /dev/null
+  ls "$TMP/out" | sort
+  #+end_src
+
+  #+RESULTS[]: tz_artifacts
+  : localtime
+  : timezone
+
+* Verifying the Python production runtime
+
+  For my Python service, I use the distroless Python image. It ships
+  only the Python interpreter — no pip, no shell, no debugging tools.
+  I verify that the timezone is correctly injected:
+
+  #+NAME: distroless_python
+  #+begin_src bash
+  dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
+  #+end_src
+
+  #+RESULTS[]: distroless_python
+  : True
+
+* The static variant for compiled services
+
+  A teammate rewrote one of our services in Go. For that, I use the
+  distroless static image — even smaller, no runtime at all, just the
+  binary and the timezone file:
+
+  #+NAME: distroless_static
+  #+begin_src bash
+  dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out2/localtime" > /dev/null
+  test -s "$TMP/out2/localtime" && echo "non-empty"
+  #+end_src
+
+  #+RESULTS[]: distroless_static
+  : non-empty
+
+* Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
+
+  #+begin_src bash :tangle ../tests/doc_production_images.sh :noweb yes :cache no
+  <<init>>
+  check-all
+  #+end_src

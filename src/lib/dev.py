@@ -119,7 +119,7 @@ class Dev:
                     "sh",
                     "-c",
                     "./tangle-nodagger.sh"
-                    " readme.org TECHNICAL.org src/*.org tests/*.org",
+                    " readme.org TECHNICAL.org src/*.org tests/*.org doc/*.org",
                 ]
             )
             .directory("/work")

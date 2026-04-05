@@ -1,0 +1,80 @@
+:PROPERTIES:
+:ID:       8f26da40-c5cb-4c37-9893-b1999c58366c
+:END:
+#+TITLE: Running CI tests like production
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :var ROOT=(expand-file-name ".." default-directory) :dir (expand-file-name ".." default-directory) :results verbatim :cache yes :session 45e210f8-271e-4ec3-8819-e07c7b29b35d
+
+I got burned last month: my tests passed in CI but the app crashed in
+production because of a file permission bug. The tests ran as root,
+but production runs as a regular user. I want my CI containers to use
+the same non-root user as production so I catch these issues early.
+
+#+NAME: init
+#+begin_src bash :results none :cache no
+source "./helpers.sh"
+#+end_src
+
+* Making sure the test container runs as a regular user
+
+  First I need to verify that my test container actually runs as a
+  non-root user, not root:
+
+  #+NAME: alpine_user_whoami
+  #+begin_src bash
+  dagger call alpine-user with-exec --args="whoami" stdout
+  #+end_src
+
+  #+RESULTS[]: alpine_user_whoami
+  : sam
+
+* The test runner needs a proper home directory
+
+  My test harness writes temporary config files to =$HOME=. I need to
+  make sure the user has a real home directory, not =/= or
+  =/nonexistent=:
+
+  #+NAME: alpine_user_home
+  #+begin_src bash
+  dagger call alpine-user with-exec --args="pwd" stdout
+  #+end_src
+
+  #+RESULTS[]: alpine_user_home
+  : /home/sam
+
+* Matching the production UID
+
+  Our Kubernetes pods run with UID 1000. I need the CI user to have
+  the same UID so that volume mounts and file ownership behave
+  identically:
+
+  #+NAME: alpine_user_id
+  #+begin_src bash
+  dagger call alpine-user with-exec --args="id","sam" stdout
+  #+end_src
+
+  #+RESULTS[]: alpine_user_id
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
+
+* Some tests need Debian for native libraries
+
+  A few integration tests link against =libpq=, which is easier on
+  Debian. Same non-root guarantee:
+
+  #+NAME: debian_user_id
+  #+begin_src bash
+  dagger call debian-user with-exec --args="id","sam" stdout
+  #+end_src
+
+  #+RESULTS[]: debian_user_id
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
+
+* Test script                                                      :noexport:
+  :PROPERTIES:
+  :header-args:bash: :tangle no
+  :END:
+
+  #+begin_src bash :tangle ../tests/doc_non_root_user.sh :noweb yes :cache no
+  <<init>>
+  check-all
+  #+end_src

@@ -153,7 +153,7 @@ ORG_PIN = "1025e3b49a98f175b124dbccd774918360fe7e11"
                   [
                       "sh", "-c",
                       "./tangle-nodagger.sh"
-                      " readme.org TECHNICAL.org src/*.org tests/*.org",
+                      " readme.org TECHNICAL.org src/*.org tests/*.org doc/*.org",
                   ]
               )
               .directory("/work")
