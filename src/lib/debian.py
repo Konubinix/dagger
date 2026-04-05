@@ -111,11 +111,7 @@ def debian_python_user_venv(
 @function
 def debian_europe_paris(self) -> dagger.File:
     """Extract the Europe/Paris localtime file from Debian."""
-    return (
-        dag.container()
-        .from_(f"debian:{self.debian_tag}")
-        .file("/usr/share/zoneinfo/Europe/Paris")
-    )
+    return self.debian().file("/etc/localtime")
 
 
 # Extracting the Europe/Paris timezone file:1 ends here
