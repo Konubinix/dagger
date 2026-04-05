@@ -1,5 +1,6 @@
 ./run.sh
 ./tangle.sh
+./check-clean.sh
 ./test.sh
 
 Don't piss code. Always plan.

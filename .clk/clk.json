@@ -1,5 +1,15 @@
 {
     "alias": {
+        "check-clean": {
+            "commands": [
+                [
+                    "exec",
+                    "--in-project",
+                    "./check-clean.sh"
+                ]
+            ],
+            "documentation": null
+        },
         "run": {
             "commands": [
                 [
@@ -23,6 +33,10 @@
         "test": {
             "commands": [
                 [
+                    "check-clean",
+                    "--flow"
+                ],
+                [
                     "exec",
                     "--in-project",
                     "./test.sh"
@@ -32,7 +46,7 @@
         }
     },
     "flowdeps": {
-        "test": [
+        "check-clean": [
             "run",
             "tangle"
         ]
