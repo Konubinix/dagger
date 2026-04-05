@@ -1,0 +1,41 @@
+#+TITLE: Python virtualenv helpers
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle lib/python.py
+
+Distro-agnostic helpers for creating Python virtualenvs inside
+containers. Used by both Alpine and Debian container builders.
+
+#+begin_src python
+import dagger
+from dagger import function
+#+end_src
+
+* Creating a Python venv
+
+  A reusable helper to create a virtualenv with =--system-site-packages=
+  and optionally install packages into it.
+
+  [[https://docs.dagger.io/api/reference#definition-Container][.with_env_variable]] with =expand=True= lets the value reference
+  existing variables — here we prepend the venv's =bin/= directory to
+  =$PATH= so that =python= and =pip= resolve to the venv copies without
+  hard-coding the rest of the path.
+
+  #+begin_src python
+  @function
+  def python_venv(
+      self,
+      ctr: dagger.Container,
+      base: str,
+      packages: list[str] = (),
+  ) -> dagger.Container:
+      """Create a Python venv with --system-site-packages and optionally install packages."""
+      ctr = ctr.with_exec([
+          "python3", "-m", "venv", "--system-site-packages", f"{base}/venv",
+      ]).with_env_variable("PATH", f"{base}/venv/bin:$PATH", expand=True)
+      if packages:
+          ctr = ctr.with_exec(
+              [f"{base}/venv/bin/python", "-m", "pip", "--quiet", "install", "--upgrade"]
+              + list(packages)
+          )
+      return ctr
+  #+end_src

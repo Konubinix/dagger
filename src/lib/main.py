@@ -20,8 +20,8 @@ from .debian import (
     debian_python_user_venv,
     debian_set_tz,
     debian_user,
-    python_venv,
 )
+from .python import python_venv
 from .dind import dind_container, dind_with_docker
 from .distroless import distroless_debian, distroless_python3_debian, distroless_set_tz
 from .flask_venv import flask_venv
