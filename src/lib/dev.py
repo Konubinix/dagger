@@ -1,11 +1,12 @@
 # [[file:../dev.org::+begin_src python][No heading:1]]
+from pathlib import Path
 from typing import Annotated
 
 import dagger
 from dagger import DefaultPath, dag, function, object_type
 
 DAGGER_VERSION = "0.20.3"
-ORG_PIN = "1025e3b49a98f175b124dbccd774918360fe7e11"
+ORG_PIN = (Path(__file__).resolve().parents[2] / ".org-pin").read_text().strip()
 # No heading:1 ends here
 
 

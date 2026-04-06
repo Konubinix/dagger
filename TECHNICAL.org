@@ -305,6 +305,54 @@ programming setup, tangling pipeline, and editor configuration. See
   ;;; reproducibility-helpers.el ends here
   #+end_src
 
+* Org-mode pin
+
+  Both =tangle-nodagger.sh= (bash) and =Dev.container()= (Python)
+  clone a pinned org-mode commit. The pin lives in a single file so
+  it cannot diverge. The bash side inlines the hash at tangle time
+  via noweb; the Python side reads =.org-pin= at runtime.
+
+  #+NAME: org-pin
+  #+begin_src conf :tangle .org-pin :comments no :padline no
+  1025e3b49a98f175b124dbccd774918360fe7e11
+  #+end_src
+
+  The =ensure-org= block checks that the cloned org-mode matches
+  the pin and re-clones if needed. Both =-nodagger= scripts
+  reference it via noweb.
+
+  #+NAME: ensure-org
+  #+begin_src bash :tangle no :noweb yes
+  # Ensure pinned org-mode is cloned and up-to-date
+  ORG_PIN="<<org-pin>>"
+  ORG_DIR="$SCRIPT_DIR/.tangle-deps/org"
+  if [ -d "$ORG_DIR" ] && [ "$(git -C "$ORG_DIR" rev-parse HEAD 2>/dev/null)" != "$ORG_PIN" ]; then
+      echo "Org-mode pin changed, re-cloning..."
+      rm -rf "$ORG_DIR"
+  fi
+  if [ ! -d "$ORG_DIR" ]; then
+      echo "Cloning pinned org-mode ($ORG_PIN)..."
+      mkdir -p "$SCRIPT_DIR/.tangle-deps"
+      git clone --quiet https://git.savannah.gnu.org/git/emacs/org-mode.git "$ORG_DIR"
+      git -C "$ORG_DIR" checkout --quiet "$ORG_PIN"
+      # Generate org-loaddefs.el and org-version.el (needed for org to load properly)
+      emacs --batch --no-init-file \
+          --eval "(progn
+                    (push \"$ORG_DIR/lisp\" load-path)
+                    (require 'autoload)
+                    (setq generated-autoload-file \"$ORG_DIR/lisp/org-loaddefs.el\")
+                    (update-directory-autoloads \"$ORG_DIR/lisp\"))" 2>/dev/null
+      ORG_GIT_VERSION=$(git -C "$ORG_DIR" describe --tags --match "release_*" 2>/dev/null || echo "N/A")
+      ORG_RELEASE=$(echo "$ORG_GIT_VERSION" | sed 's/^release_//;s/-.*//')
+      (cd "$ORG_DIR/lisp" && emacs --batch --no-init-file \
+          --eval "(progn
+                    (push \"$ORG_DIR/lisp\" load-path)
+                    (load \"$ORG_DIR/mk/org-fixup.el\")
+                    (org-make-org-version \"$ORG_RELEASE\"
+                                          \"$ORG_GIT_VERSION\"))") 2>/dev/null || true
+  fi
+  #+end_src
+
 * Tangle configuration
   :PROPERTIES:
   :ID:       0474ada9-a621-4c1a-97aa-270cf96e32c4
@@ -375,7 +423,7 @@ programming setup, tangling pipeline, and editor configuration. See
 
   When called with arguments, it tangles the specified files instead.
 
-  #+begin_src bash :tangle tangle-nodagger.sh :shebang "#!/usr/bin/env bash"
+  #+begin_src bash :tangle tangle-nodagger.sh :shebang "#!/usr/bin/env bash" :noweb yes
   # Bootstrap tangle using host tools (emacs, git, ruff).
   # Usage:
   #   ./tangle-nodagger.sh                 # tangle only mode 2 bootstrap files
@@ -384,30 +432,7 @@ programming setup, tangling pipeline, and editor configuration. See
 
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-  # Pin org-mode version for reproducible tangle output
-  ORG_PIN="1025e3b49a98f175b124dbccd774918360fe7e11"
-  ORG_DIR="$SCRIPT_DIR/.tangle-deps/org"
-  if [ ! -d "$ORG_DIR" ]; then
-      echo "Cloning pinned org-mode ($ORG_PIN)..."
-      mkdir -p "$SCRIPT_DIR/.tangle-deps"
-      git clone --quiet https://git.savannah.gnu.org/git/emacs/org-mode.git "$ORG_DIR"
-      git -C "$ORG_DIR" checkout --quiet "$ORG_PIN"
-      # Generate org-loaddefs.el and org-version.el (needed for org to load properly)
-      emacs --batch --no-init-file \
-          --eval "(progn
-                    (push \"$ORG_DIR/lisp\" load-path)
-                    (require 'autoload)
-                    (setq generated-autoload-file \"$ORG_DIR/lisp/org-loaddefs.el\")
-                    (update-directory-autoloads \"$ORG_DIR/lisp\"))" 2>/dev/null
-      ORG_GIT_VERSION=$(git -C "$ORG_DIR" describe --tags --match "release_*" 2>/dev/null || echo "N/A")
-      ORG_RELEASE=$(echo "$ORG_GIT_VERSION" | sed 's/^release_//;s/-.*//')
-      (cd "$ORG_DIR/lisp" && emacs --batch --no-init-file \
-          --eval "(progn
-                    (push \"$ORG_DIR/lisp\" load-path)
-                    (load \"$ORG_DIR/mk/org-fixup.el\")
-                    (org-make-org-version \"$ORG_RELEASE\"
-                                          \"$ORG_GIT_VERSION\"))") 2>/dev/null || true
-  fi
+  <<ensure-org>>
 
   tangle_file() {
       local orgfile="$1"
@@ -497,7 +522,7 @@ programming setup, tangling pipeline, and editor configuration. See
   mode. =Dev.run()= calls this script inside the container — it must
   not delegate back to =dagger call= or it would recurse infinitely.
 
-  #+begin_src bash :tangle run-nodagger.sh :shebang "#!/usr/bin/env bash"
+  #+begin_src bash :tangle run-nodagger.sh :shebang "#!/usr/bin/env bash" :noweb yes
   # Execute org-babel blocks and save results.
   # Usage:
   #   ./run-nodagger.sh                    # run all src and doc org files
@@ -505,6 +530,8 @@ programming setup, tangling pipeline, and editor configuration. See
   set -eu
 
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+  <<ensure-org>>
 
   run_file() {
       local orgfile="$1"

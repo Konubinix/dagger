@@ -8,9 +8,13 @@ set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Pin org-mode version for reproducible tangle output
+# Ensure pinned org-mode is cloned and up-to-date
 ORG_PIN="1025e3b49a98f175b124dbccd774918360fe7e11"
 ORG_DIR="$SCRIPT_DIR/.tangle-deps/org"
+if [ -d "$ORG_DIR" ] && [ "$(git -C "$ORG_DIR" rev-parse HEAD 2>/dev/null)" != "$ORG_PIN" ]; then
+    echo "Org-mode pin changed, re-cloning..."
+    rm -rf "$ORG_DIR"
+fi
 if [ ! -d "$ORG_DIR" ]; then
     echo "Cloning pinned org-mode ($ORG_PIN)..."
     mkdir -p "$SCRIPT_DIR/.tangle-deps"
