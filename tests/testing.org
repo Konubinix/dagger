@@ -23,6 +23,33 @@ spec file and expected-value file under =tests/specs/= and
   exec pytest tests/test_sdk.py -v
   #+end_src
 
+* Nix shell for host testing
+  :PROPERTIES:
+  :ID:       c7e8f9a0-b1c2-3d4e-5f6a-7b8c9d0e1f2a
+  :END:
+
+  =test-nodagger.sh= expects =pytest=, =pytest-asyncio= and =pyyaml=
+  to be available on the host. This =shell.nix= provides them via
+  =nix-shell= so the test suite can run outside of dagger without
+  polluting the system Python:
+
+  #+begin_src bash :tangle no
+  nix-shell --run "./test-nodagger.sh"
+  #+end_src
+
+  #+begin_src nix :tangle ../shell.nix
+  { pkgs ? import <nixpkgs> {} }:
+
+  pkgs.mkShell {
+    packages = with pkgs; [
+      python313
+      python313Packages.pytest
+      python313Packages.pytest-asyncio
+      python313Packages.pyyaml
+    ];
+  }
+  #+end_src
+
 * The test entry point
   :PROPERTIES:
   :ID:       d49833b6-c2c2-4041-aa38-b7afcb4c0ef9
