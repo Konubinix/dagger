@@ -1,7 +1,10 @@
-./run.sh
-./tangle.sh
-./check-clean.sh
-./test.sh
+Use those scripts only:
+- ./run.sh
+- ./tangle.sh
+- ./test.sh
+
+Use ./tangle-nodagger.sh ONLY IF you need to resolve the chicken-and-egg
+problem.
 
 Don't piss code. Always plan.
 
