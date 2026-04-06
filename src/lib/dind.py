@@ -25,14 +25,18 @@ _DOCKERD_START = (
 def dind_container(
     self,
     base: dagger.Container | None = None,
+    src: dagger.Directory | None = None,
 ) -> dagger.Container:
     """Return a container with Docker installed, ready for DinD.
 
     If base is provided, Docker is installed into it (must be Debian/Ubuntu-based).
     Otherwise uses the image from Lib.dind_ubuntu_image.
+    src is the module source directory; defaults to the current directory.
     """
     if base is None:
         base = dag.container().from_(self.dind_ubuntu_image)
+    if src is None:
+        src = dag.address(".").directory()
 
     return (
         base.with_exec(["apt-get", "update"])
@@ -47,24 +51,11 @@ def dind_container(
                 "iptables",
             ]
         )
-        .with_exec(
-            [
-                "bash",
-                "-c",
-                ". /etc/os-release"
-                " && install -m 0755 -d /etc/apt/keyrings"
-                " && curl -fsSL https://download.docker.com/linux/$ID/gpg"
-                " -o /etc/apt/keyrings/docker.asc"
-                " && chmod a+r /etc/apt/keyrings/docker.asc"
-                ' && echo "deb [arch=$(dpkg --print-architecture)'
-                " signed-by=/etc/apt/keyrings/docker.asc]"
-                " https://download.docker.com/linux/$ID"
-                ' $VERSION_CODENAME stable"'
-                " > /etc/apt/sources.list.d/docker.list"
-                " && apt-get update"
-                " && apt-get install --yes docker-ce docker-ce-cli containerd.io",
-            ]
+        .with_file(
+            "/tmp/docker-repo-install.sh",
+            src.file("src/lib/docker-repo-install.sh"),
         )
+        .with_exec(["sh", "/tmp/docker-repo-install.sh"])
     )
 
 

@@ -31,6 +31,29 @@ _DOCKERD_START = (
 )
 #+end_src
 
+* Installing Docker from the official repository
+
+  This script adds the Docker APT repository and installs Docker CE.
+  It is tangled to a standalone shell file so the Python code can
+  inject it into the container as-is.
+
+  #+begin_src sh :tangle lib/docker-repo-install.sh :tangle-mode (identity #o755)
+#!/bin/sh
+set -eu
+. /etc/os-release
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL "https://download.docker.com/linux/$ID/gpg" \
+    -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/$ID \
+  $VERSION_CODENAME stable" \
+    > /etc/apt/sources.list.d/docker.list
+apt-get update
+apt-get install --yes docker-ce docker-ce-cli containerd.io
+  #+end_src
+
 * Preparing a DinD-capable container
   :PROPERTIES:
   :ID:       03b5bc42-932d-49f9-b922-ee7cba52528a
@@ -44,14 +67,18 @@ _DOCKERD_START = (
   def dind_container(
       self,
       base: dagger.Container | None = None,
+      src: dagger.Directory | None = None,
   ) -> dagger.Container:
       """Return a container with Docker installed, ready for DinD.
 
       If base is provided, Docker is installed into it (must be Debian/Ubuntu-based).
       Otherwise uses the image from Lib.dind_ubuntu_image.
+      src is the module source directory; defaults to the current directory.
       """
       if base is None:
           base = dag.container().from_(self.dind_ubuntu_image)
+      if src is None:
+          src = dag.address(".").directory()
 
       return (
           base
@@ -60,19 +87,11 @@ _DOCKERD_START = (
               "apt-get", "install", "--yes",
               "ca-certificates", "curl", "gnupg", "iptables",
           ])
-          .with_exec(["bash", "-c",
-                       ". /etc/os-release"
-                       " && install -m 0755 -d /etc/apt/keyrings"
-                       " && curl -fsSL https://download.docker.com/linux/$ID/gpg"
-                       " -o /etc/apt/keyrings/docker.asc"
-                       " && chmod a+r /etc/apt/keyrings/docker.asc"
-                       ' && echo "deb [arch=$(dpkg --print-architecture)'
-                       " signed-by=/etc/apt/keyrings/docker.asc]"
-                       " https://download.docker.com/linux/$ID"
-                       ' $VERSION_CODENAME stable"'
-                       " > /etc/apt/sources.list.d/docker.list"
-                       " && apt-get update"
-                       " && apt-get install --yes docker-ce docker-ce-cli containerd.io"])
+          .with_file(
+              "/tmp/docker-repo-install.sh",
+              src.file("src/lib/docker-repo-install.sh"),
+          )
+          .with_exec(["sh", "/tmp/docker-repo-install.sh"])
       )
   #+end_src
 
