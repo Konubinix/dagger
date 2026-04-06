@@ -15,7 +15,7 @@ _DOCKERD_START = (
     "mkdir -p /var/lib/docker\n"
     "mount -t tmpfs tmpfs /var/lib/docker\n"
     "dockerd &>/var/log/dockerd.log &\n"
-    "sleep 3\n"
+    "for i in $(seq 1 30); do docker info &>/dev/null && break; sleep 0.2; done\n"
 )
 # No heading:1 ends here
 
