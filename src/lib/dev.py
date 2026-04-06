@@ -1,12 +1,16 @@
 # [[file:../dev.org::+begin_src python][No heading:1]]
+import json
 from pathlib import Path
 from typing import Annotated
 
 import dagger
 from dagger import DefaultPath, dag, function, object_type
 
-DAGGER_VERSION = "0.20.3"
-ORG_PIN = (Path(__file__).resolve().parents[2] / ".org-pin").read_text().strip()
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DAGGER_VERSION = json.loads((_PROJECT_ROOT / "dagger.json").read_text())[
+    "engineVersion"
+].lstrip("v")
+ORG_PIN = (_PROJECT_ROOT / ".org-pin").read_text().strip()
 # No heading:1 ends here
 
 
@@ -167,7 +171,7 @@ class Dev:
                     "install",
                     "--break-system-packages",
                     "--quiet",
-                    "dagger-io",
+                    f"dagger-io=={DAGGER_VERSION}",
                 ]
             )
             .with_exec(

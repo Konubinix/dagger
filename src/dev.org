@@ -31,14 +31,16 @@ The bootstrap flow:
 3. Use mode 2 for all daily work.
 
 #+begin_src python
+import json
 from pathlib import Path
 from typing import Annotated
 
 import dagger
 from dagger import DefaultPath, dag, function, object_type
 
-DAGGER_VERSION = "0.20.3"
-ORG_PIN = (Path(__file__).resolve().parents[2] / ".org-pin").read_text().strip()
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DAGGER_VERSION = json.loads((_PROJECT_ROOT / "dagger.json").read_text())["engineVersion"].lstrip("v")
+ORG_PIN = (_PROJECT_ROOT / ".org-pin").read_text().strip()
 #+end_src
 
 * Dev class
@@ -62,10 +64,15 @@ ORG_PIN = (Path(__file__).resolve().parents[2] / ".org-pin").read_text().strip()
     The bash blocks call dagger, so nested access is required.
   - =test= runs the test suite via =test-nodagger.sh= (pytest).
     Nested dagger access is required. It installs =dagger-io= from
-    PyPI rather than the local =./sdk= directory because =sdk/= is
-    gitignored: when =dagger call= builds the context it honours
-    =.gitignore=, so =sdk/= is absent from the mounted source even
-    though it exists on the host.
+    PyPI because the test container is a plain Debian box, not a
+    dagger module runtime — it has no SDK provided automatically.
+    The local =sdk/= that dagger generates for the module cannot be
+    mounted either: it is gitignored, so =dagger call= excludes it
+    from the context. The PyPI install is pinned to
+    =DAGGER_VERSION= (read from =dagger.json=) so it stays in
+    lockstep with the engine — the dagger runtime generates =sdk/=
+    matched to its own version, and the test container must use the
+    same one.
 
   These three functions use =DefaultPath(".")= instead of the
   [[file:../TECHNICAL.org::*Source directory convention][=dag.address(".")= pattern]] because they mount the entire
@@ -213,7 +220,7 @@ ORG_PIN = (Path(__file__).resolve().parents[2] / ".org-pin").read_text().strip()
               .with_exec(
                   [
                       "pip", "install", "--break-system-packages",
-                      "--quiet", "dagger-io",
+                      "--quiet", f"dagger-io=={DAGGER_VERSION}",
                   ]
               )
               .with_exec(
