@@ -167,7 +167,7 @@ class Dev:
                     "install",
                     "--break-system-packages",
                     "--quiet",
-                    "./sdk",
+                    "dagger-io",
                 ]
             )
             .with_exec(
