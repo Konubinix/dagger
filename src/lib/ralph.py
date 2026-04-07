@@ -52,8 +52,7 @@ def _ralph_git(
     name: str,
 ) -> dagger.Container:
     """Configure git identity."""
-    q_email = shlex.quote(email)
-    q_name = shlex.quote(name)
+    q_email, q_name = map(shlex.quote, (email, name))
     return ctr.with_exec(
         [
             "sh",

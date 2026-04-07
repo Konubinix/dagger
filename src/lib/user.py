@@ -19,8 +19,7 @@ def setup_user(
 ) -> dagger.Container:
     """Create a user with optional groups and sudo access."""
     username = username or self.default_username
-    q_username = shlex.quote(username)
-    q_shell = shlex.quote(shell)
+    q_username, q_shell = map(shlex.quote, (username, shell))
     ctr = (
         ctr.with_env_variable("HOME", f"/home/{username}")
         .with_exec(
@@ -55,7 +54,7 @@ def setup_user(
             ]
         )
     if groups:
-        groups_str = " ".join(shlex.quote(g) for g in groups)
+        groups_str = shlex.join(groups)
         ctr = ctr.with_exec(
             [
                 "sh",

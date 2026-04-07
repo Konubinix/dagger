@@ -60,7 +60,7 @@ def debian(self, extra_packages: list[str] = ()) -> dagger.Container:
     ctr = self.debian_no_auto_install(ctr)
     ctr = self.debian_set_tz(ctr)
     if extra_packages:
-        packages_str = " ".join(shlex.quote(p) for p in extra_packages)
+        packages_str = shlex.join(extra_packages)
         ctr = ctr.with_exec(
             [
                 "sh",
