@@ -101,10 +101,10 @@ def as_user(
 def use_user(
     self,
     ctr: dagger.Container,
-    groups: list[str] = (),
     uid: int = 1000,
-    sudoer: bool = False,
     username: str | None = None,
+    sudoer: bool = False,
+    groups: list[str] = (),
 ) -> dagger.Container:
     """Create a user and switch to it (SETUP_USER + AS_USER)."""
     ctr = self.setup_user(ctr, uid=uid, username=username, sudoer=sudoer, groups=groups)
