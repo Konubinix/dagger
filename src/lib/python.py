@@ -10,7 +10,7 @@ def python_venv(
     self,
     ctr: dagger.Container,
     base: str,
-    packages: list[str] = (),
+    pip_packages: list[str] = (),
 ) -> dagger.Container:
     """Create a Python venv with --system-site-packages and optionally install packages."""
     ctr = ctr.with_exec(
@@ -22,10 +22,10 @@ def python_venv(
             f"{base}/venv",
         ]
     ).with_env_variable("PATH", f"{base}/venv/bin:$PATH", expand=True)
-    if packages:
+    if pip_packages:
         ctr = ctr.with_exec(
             [f"{base}/venv/bin/python", "-m", "pip", "--quiet", "install", "--upgrade"]
-            + list(packages)
+            + list(pip_packages)
         )
     return ctr
 
@@ -39,13 +39,13 @@ def python_user_venv(
     self,
     ctr: dagger.Container,
     groups: list[str] = (),
-    packages: list[str] = (),
+    pip_packages: list[str] = (),
     work_dir: str = "/app",
 ) -> dagger.Container:
     """Add a user, workdir, and virtualenv to a container that already has Python."""
     ctr = self.use_user(ctr, groups=groups)
     ctr = ctr.with_workdir(work_dir)
-    return self.python_venv(ctr, base=work_dir, packages=packages)
+    return self.python_venv(ctr, base=work_dir, pip_packages=pip_packages)
 
 
 # Python with a user and virtualenv:1 ends here

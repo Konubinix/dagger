@@ -45,7 +45,7 @@ post: test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
   #+begin_src fixtureyaml
 func: flask-venv
 args:
-  packages: [gunicorn]
+  pip-packages: [gunicorn]
 chain:
   - export: $TMP/out2
 post: test -f "$TMP/out2/bin/gunicorn" && echo "bin/gunicorn exists"
@@ -54,7 +54,7 @@ post: test -f "$TMP/out2/bin/gunicorn" && echo "bin/gunicorn exists"
   #+RESULTS[5513a5e29d18cd329ab4c98287ddedc740ca8873]: flask_with_gunicorn
   :results:
   #+begin_src bash :exports code :eval no-export
-  dagger call flask-venv --packages=gunicorn export --path="$TMP/out2" > /dev/null
+  dagger call flask-venv --pip-packages=gunicorn export --path="$TMP/out2" > /dev/null
   test -f "$TMP/out2/bin/gunicorn" && echo "bin/gunicorn exists"
   #+end_src
 

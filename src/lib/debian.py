@@ -54,13 +54,13 @@ def debian_apt_cleanup(self, ctr: dagger.Container) -> dagger.Container:
 
 # [[file:../debian.org::*A base Debian container][A base Debian container:1]]
 @function
-def debian(self, extra_packages: list[str] = ()) -> dagger.Container:
+def debian(self, distro_packages: list[str] = ()) -> dagger.Container:
     """Debian slim with timezone set, no auto-install, and optional extra packages."""
     ctr = dag.container().from_(f"debian:{self.debian_tag}")
     ctr = self.debian_no_auto_install(ctr)
     ctr = self.debian_set_tz(ctr)
-    if extra_packages:
-        packages_str = shlex.join(extra_packages)
+    if distro_packages:
+        packages_str = shlex.join(distro_packages)
         ctr = ctr.with_exec(
             [
                 "sh",
@@ -79,9 +79,9 @@ def debian(self, extra_packages: list[str] = ()) -> dagger.Container:
 
 # [[file:../debian.org::*Debian with a default user][Debian with a default user:1]]
 @function
-def debian_user(self, extra_packages: list[str] = ()) -> dagger.Container:
+def debian_user(self, distro_packages: list[str] = ()) -> dagger.Container:
     """Debian with a default user."""
-    ctr = self.debian(extra_packages=extra_packages)
+    ctr = self.debian(distro_packages=distro_packages)
     return self.use_user(ctr)
 
 
@@ -92,15 +92,15 @@ def debian_user(self, extra_packages: list[str] = ()) -> dagger.Container:
 @function
 def debian_python_user_venv(
     self,
-    extra_packages: list[str] = (),
+    distro_packages: list[str] = (),
     groups: list[str] = (),
-    packages: list[str] = (),
+    pip_packages: list[str] = (),
     work_dir: str = "/app",
 ) -> dagger.Container:
     """Debian with python, user, and a virtualenv."""
-    ctr = self.debian(extra_packages=["python3-venv"] + list(extra_packages))
+    ctr = self.debian(distro_packages=["python3-venv"] + list(distro_packages))
     return self.python_user_venv(
-        ctr, groups=groups, packages=packages, work_dir=work_dir
+        ctr, groups=groups, pip_packages=pip_packages, work_dir=work_dir
     )
 
 

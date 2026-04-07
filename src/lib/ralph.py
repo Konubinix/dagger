@@ -165,7 +165,7 @@ async def ralph(
     # Container
     src: dagger.Directory | None = None,
     ctr: dagger.Container | None = None,
-    extra_packages: list[str] = (),
+    distro_packages: list[str] = (),
     username: str | None = None,
     # Git identity
     git_email: str = "ralph@localhost",
@@ -190,7 +190,7 @@ async def ralph(
     username = username or self.default_username
     if ctr is None:
         ctr = self.debian_python_user_venv(
-            extra_packages=["git", "npm"] + list(extra_packages),
+            distro_packages=["git", "npm"] + list(distro_packages),
         )
     owner = f"{username}:{username}"
     home = f"/home/{username}"

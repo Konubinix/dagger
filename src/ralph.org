@@ -319,7 +319,7 @@ from dagger import dag, function
       # Container
       src: dagger.Directory | None = None,
       ctr: dagger.Container | None = None,
-      extra_packages: list[str] = (),
+      distro_packages: list[str] = (),
       username: str | None = None,
       # Git identity
       git_email: str = "ralph@localhost",
@@ -344,7 +344,7 @@ from dagger import dag, function
       username = username or self.default_username
       if ctr is None:
           ctr = self.debian_python_user_venv(
-              extra_packages=["git", "npm"] + list(extra_packages),
+              distro_packages=["git", "npm"] + list(distro_packages),
           )
       owner = f"{username}:{username}"
       home = f"/home/{username}"
@@ -364,7 +364,7 @@ from dagger import dag, function
   #+begin_src fixtureyaml
 func: debian
 args:
-  extra-packages: [python3-yaml]
+  distro-packages: [python3-yaml]
 chain:
   - with-file:
       path: /tmp/ralph.yml
@@ -376,7 +376,7 @@ chain:
   #+RESULTS[b63eaf17944fab7eebf8678cf2d16c197d921765]: ralph_yml_valid
   :results:
   #+begin_src bash :exports code :eval no-export
-  dagger call debian --extra-packages=python3-yaml with-file --path=/tmp/ralph.yml --source="${ROOT}/src/ralph.yml" with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
+  dagger call debian --distro-packages=python3-yaml with-file --path=/tmp/ralph.yml --source="${ROOT}/src/ralph.yml" with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
   #+end_src
 
   #+RESULTS[8f3b1dcf87e5e221ea3d68d9781e03f6d8d12e96]:
@@ -578,9 +578,9 @@ shell: ralph-log-filter < "${ROOT}/tests/ralph_log_sample.txt" 2>/dev/null | sed
       dagger_args = [
           "call", "ralph",
           "--claude-credentials", f"file:{credentials}",
-          "--extra-packages", "emacs-nox",
-          "--extra-packages", "curl",
-          "--extra-packages", "xz-utils",
+          "--distro-packages", "emacs-nox",
+          "--distro-packages", "curl",
+          "--distro-packages", "xz-utils",
           "--ralph-args", ralph_args,
       ]
 

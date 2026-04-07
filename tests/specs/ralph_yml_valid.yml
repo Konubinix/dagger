@@ -1,6 +1,6 @@
 func: debian
 args:
-  extra-packages: [python3-yaml]
+  distro-packages: [python3-yaml]
 chain:
   - with-file:
       path: /tmp/ralph.yml

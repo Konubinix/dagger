@@ -43,7 +43,7 @@ chain:
   #+begin_src fixtureyaml
 func: alpine
 args:
-  extra-packages: [curl]
+  distro-packages: [curl]
 chain:
   - with-exec: [which, curl]
   - stdout
@@ -52,7 +52,7 @@ chain:
   #+RESULTS[4cd8426869dd414aedd75362cd94eb25dfa1466c]: alpine_extra_packages
   :results:
   #+begin_src bash :exports code :eval no-export
-  dagger call alpine --extra-packages=curl with-exec --args="which","curl" stdout
+  dagger call alpine --distro-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
   #+RESULTS[1e58f619f899b7a0230caf874bc01d3c559d7f55]:

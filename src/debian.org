@@ -69,13 +69,13 @@ from dagger import dag, function
 
   #+begin_src python
   @function
-  def debian(self, extra_packages: list[str] = ()) -> dagger.Container:
+  def debian(self, distro_packages: list[str] = ()) -> dagger.Container:
       """Debian slim with timezone set, no auto-install, and optional extra packages."""
       ctr = dag.container().from_(f"debian:{self.debian_tag}")
       ctr = self.debian_no_auto_install(ctr)
       ctr = self.debian_set_tz(ctr)
-      if extra_packages:
-          packages_str = shlex.join(extra_packages)
+      if distro_packages:
+          packages_str = shlex.join(distro_packages)
           ctr = ctr.with_exec([
               "sh", "-c",
               "{ apt-get --quiet update"
@@ -123,20 +123,20 @@ chain:
   : APT::Install-Suggests "0";
   :end:
 
-  #+NAME: debian_extra_packages
+  #+NAME: debian_distro_packages
   #+begin_src fixtureyaml
 func: debian
 args:
-  extra-packages: [curl]
+  distro-packages: [curl]
 chain:
   - with-exec: [which, curl]
   - stdout
   #+end_src
 
-  #+RESULTS[b5ab50055265f8a19c73bf77469aa9f25dd92ce8]: debian_extra_packages
+  #+RESULTS[b5ab50055265f8a19c73bf77469aa9f25dd92ce8]: debian_distro_packages
   :results:
   #+begin_src bash :exports code :eval no-export
-  dagger call debian --extra-packages=curl with-exec --args="which","curl" stdout
+  dagger call debian --distro-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
   #+RESULTS[ab9b840841d8dba1ff2e90f87fb46a68849c6b3a]:
@@ -149,9 +149,9 @@ chain:
 
   #+begin_src python
   @function
-  def debian_user(self, extra_packages: list[str] = ()) -> dagger.Container:
+  def debian_user(self, distro_packages: list[str] = ()) -> dagger.Container:
       """Debian with a default user."""
-      ctr = self.debian(extra_packages=extra_packages)
+      ctr = self.debian(distro_packages=distro_packages)
       return self.use_user(ctr)
   #+end_src
 
@@ -182,14 +182,14 @@ chain:
   @function
   def debian_python_user_venv(
       self,
-      extra_packages: list[str] = (),
+      distro_packages: list[str] = (),
       groups: list[str] = (),
-      packages: list[str] = (),
+      pip_packages: list[str] = (),
       work_dir: str = "/app",
   ) -> dagger.Container:
       """Debian with python, user, and a virtualenv."""
-      ctr = self.debian(extra_packages=["python3-venv"] + list(extra_packages))
-      return self.python_user_venv(ctr, groups=groups, packages=packages, work_dir=work_dir)
+      ctr = self.debian(distro_packages=["python3-venv"] + list(distro_packages))
+      return self.python_user_venv(ctr, groups=groups, pip_packages=pip_packages, work_dir=work_dir)
   #+end_src
 
   #+NAME: debian_python_user_venv_check

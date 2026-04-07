@@ -79,29 +79,29 @@ chain:
 
   #+begin_src python
   @function
-  def alpine(self, extra_packages: list[str] = ()) -> dagger.Container:
+  def alpine(self, distro_packages: list[str] = ()) -> dagger.Container:
       """Alpine with timezone set and optional extra packages."""
       ctr = dag.container().from_(f"alpine:{self.alpine_version}")
       ctr = self.alpine_set_tz(ctr)
-      if extra_packages:
-          ctr = ctr.with_exec(["apk", "--quiet", "add"] + list(extra_packages))
+      if distro_packages:
+          ctr = ctr.with_exec(["apk", "--quiet", "add"] + list(distro_packages))
       return ctr
   #+end_src
 
-  #+NAME: alpine_extra_packages
+  #+NAME: alpine_distro_packages
   #+begin_src fixtureyaml
 func: alpine
 args:
-  extra-packages: [curl]
+  distro-packages: [curl]
 chain:
   - with-exec: [which, curl]
   - stdout
   #+end_src
 
-  #+RESULTS[4cd8426869dd414aedd75362cd94eb25dfa1466c]: alpine_extra_packages
+  #+RESULTS[4cd8426869dd414aedd75362cd94eb25dfa1466c]: alpine_distro_packages
   :results:
   #+begin_src bash :exports code :eval no-export
-  dagger call alpine --extra-packages=curl with-exec --args="which","curl" stdout
+  dagger call alpine --distro-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
   #+RESULTS[1e58f619f899b7a0230caf874bc01d3c559d7f55]:
@@ -120,11 +120,11 @@ chain:
   @function
   def alpine_user(
       self,
-      extra_packages: list[str] = (),
+      distro_packages: list[str] = (),
       groups: list[str] = (),
   ) -> dagger.Container:
       """Alpine with a default user."""
-      ctr = self.alpine(extra_packages=extra_packages)
+      ctr = self.alpine(distro_packages=distro_packages)
       return self.use_user(ctr, groups=groups)
   #+end_src
 
@@ -200,9 +200,9 @@ post: ls "$TMP/out" | sort
 
   #+begin_src python
   @function
-  def alpine_python(self, extra_packages: list[str] = ()) -> dagger.Container:
+  def alpine_python(self, distro_packages: list[str] = ()) -> dagger.Container:
       """Alpine with python3 and pip."""
-      return self.alpine(extra_packages=["python3", "py3-pip"] + list(extra_packages))
+      return self.alpine(distro_packages=["python3", "py3-pip"] + list(distro_packages))
   #+end_src
 
   #+NAME: alpine_python_check
@@ -239,14 +239,14 @@ chain:
   @function
   def alpine_python_user_venv(
       self,
-      extra_packages: list[str] = (),
+      distro_packages: list[str] = (),
       groups: list[str] = (),
-      packages: list[str] = (),
+      pip_packages: list[str] = (),
       work_dir: str = "/app",
   ) -> dagger.Container:
       """Alpine with python, user, and a virtualenv."""
-      ctr = self.alpine_python(extra_packages=extra_packages)
-      return self.python_user_venv(ctr, groups=groups, packages=packages, work_dir=work_dir)
+      ctr = self.alpine_python(distro_packages=distro_packages)
+      return self.python_user_venv(ctr, groups=groups, pip_packages=pip_packages, work_dir=work_dir)
   #+end_src
 
   #+NAME: alpine_python_user_venv_check
