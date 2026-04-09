@@ -38,13 +38,18 @@ chain:
 post: test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
   #+end_src
 
-  #+RESULTS[ab67d2103650dc548cde34da2ee680ec70de10e3]: flask_venv_export
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call flask-venv export --path="$TMP/out" > /dev/null
-  test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
-  #+end_src
+#+RESULTS: flask_venv_export
+:results:
+#+NAME: flask_venv_export-run
+#+begin_src bash :exports code :eval no-export
+dagger call flask-venv export --path="$TMP/out" > /dev/null
+test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
+#+end_src
 
-  #+RESULTS[c20166dfff494f2f51a5f807ea6742b2388848b2]:
-  : bin/flask exists
-  :end:
+#+RESULTS[6123a8c74ceb95e4bfac6cd2efcd09340ff2c912]: flask_venv_export-run
+: bin/flask exists
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/flask_venv_export" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<flask_venv_export-run()>>
+#+END_SRC
+:end:

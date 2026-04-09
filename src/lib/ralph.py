@@ -186,7 +186,10 @@ async def ralph(
     src is the module source directory; defaults to the current directory.
     """
     if src is None:
-        src = dag.address(".").directory()
+        try:
+            src = dag.current_module().source()
+        except dagger.QueryError:
+            src = dag.address(".").directory()
     username = username or self.default_username
     if ctr is None:
         ctr = self.debian_python_user_venv(

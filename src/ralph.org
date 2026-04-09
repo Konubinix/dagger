@@ -340,7 +340,10 @@ from dagger import dag, function
       src is the module source directory; defaults to the current directory.
       """
       if src is None:
-          src = dag.address(".").directory()
+          try:
+              src = dag.current_module().source()
+          except dagger.QueryError:
+              src = dag.address(".").directory()
       username = username or self.default_username
       if ctr is None:
           ctr = self.debian_python_user_venv(
@@ -373,16 +376,19 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[262bcf831e0a967619ecc4e40c62ffb619ff1319]: ralph_yml_valid
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call debian --distro-packages=python3-yaml with-file --path=/tmp/ralph.yml --source="${ROOT}/src/ralph.yml" with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
-  #+end_src
+#+RESULTS: ralph_yml_valid
+:results:
+#+NAME: ralph_yml_valid-run
+#+begin_src bash :exports code :eval no-export
+dagger call debian --distro-packages=python3-yaml with-file --path=/tmp/ralph.yml --source="${ROOT}/src/ralph.yml" with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
+#+end_src
 
-  #+RESULTS[75a8ecbfcf258bc28782db45878319966b98b992]:
-  : work.start
-  : 2
-  :end:
+#+RESULTS[d622db5d58703e1fecf1101746b83abd3286e07a]: ralph_yml_valid-run
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/ralph_yml_valid" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<ralph_yml_valid-run()>>
+#+END_SRC
+:end:
 
   The log filter is tested by piping a fixture of real ralph output
   through =ralph-log-filter= and comparing the result.
@@ -392,21 +398,19 @@ chain:
 shell: ralph-log-filter < "${ROOT}/tests/ralph_log_sample.txt" 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
   #+end_src
 
-  #+RESULTS[b7b743a99cb005c92dd5c68ad6611b266c4c7d69]: log_filter_output
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  ralph-log-filter < "${ROOT}/tests/ralph_log_sample.txt" 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
-  #+end_src
+#+RESULTS: log_filter_output
+:results:
+#+NAME: log_filter_output-run
+#+begin_src bash :exports code :eval no-export
+ralph-log-filter < "${ROOT}/tests/ralph_log_sample.txt" 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
+#+end_src
 
-  #+RESULTS[2c3159386493baf6f6912e7c487782d8b35d7ace]:
-  : [ralph] starting ralph...
-  : [ralph] ralph started (PID 16)
-  : [file] Read: /tmp/ralph-workdir/ralph.yml
-  : [tool] Bash: mkdir -p .ralph/agent
-  : [file] Write: /tmp/ralph-workdir/.ralph/agent/scratchpad.md
-  : [event] event: work.picked
-  : [ralph] log-level changed to json
-  :end:
+#+RESULTS[70e8b89e03ad295a817bf07ed96f0208e5829e83]: log_filter_output-run
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/log_filter_output" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<log_filter_output-run()>>
+#+END_SRC
+:end:
 
 
 * Log filter

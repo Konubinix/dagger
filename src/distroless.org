@@ -58,15 +58,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[d317980623c1af8f8f1909a950df23c6a824f852]: distroless_python3
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
-  #+end_src
+#+RESULTS: distroless_python3
+:results:
+#+NAME: distroless_python3-run
+#+begin_src bash :exports code :eval no-export
+dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
+#+end_src
 
-  #+RESULTS[8afe27936e99ecdd030f0f2c8de1d708c620d066]:
-  : True
-  :end:
+#+RESULTS[a9a6588e057019cfe9443de81184e36e7b4f65ac]: distroless_python3-run
+: True
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/distroless_python3" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<distroless_python3-run()>>
+#+END_SRC
+:end:
 
 * Distroless static
 
@@ -91,13 +96,18 @@ chain:
 post: test -s "$TMP/out/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[898fbf680e944af3a163e95027be949d214ddc57]: distroless_static_export
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out/localtime" > /dev/null
-  test -s "$TMP/out/localtime" && echo "non-empty"
-  #+end_src
+#+RESULTS: distroless_static_export
+:results:
+#+NAME: distroless_static_export-run
+#+begin_src bash :exports code :eval no-export
+dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out/localtime" > /dev/null
+test -s "$TMP/out/localtime" && echo "non-empty"
+#+end_src
 
-  #+RESULTS[af4f8b1adead4ee814e7c07945c2b765abb9713b]:
-  : non-empty
-  :end:
+#+RESULTS[6ec9357537aa901a70c4b4b1c2550594993836c6]: distroless_static_export-run
+: non-empty
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/distroless_static_export" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<distroless_static_export-run()>>
+#+END_SRC
+:end:

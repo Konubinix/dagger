@@ -1,6 +1,0 @@
-func: flask-venv
-args:
-  pip-packages: [gunicorn]
-chain:
-  - export: $TMP/out2
-post: test -f "$TMP/out2/bin/gunicorn" && echo "bin/gunicorn exists"

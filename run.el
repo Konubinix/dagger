@@ -1,14 +1,20 @@
 ;; [[file:TECHNICAL.org::*Run configuration][Run configuration:1]]
-;;; run.el --- Batch-execute org-babel fixtureyaml blocks -*- lexical-binding: t; -*-
+;;; run.el --- Batch-execute org-babel bash blocks -*- lexical-binding: t; -*-
+
+(defun dagger-run-ignore-cache ()
+  "Override :cache to \"no\" so all blocks re-execute."
+  (setq org-babel-default-header-args
+        (cons '(:cache . "no")
+              (assq-delete-all :cache org-babel-default-header-args))))
 
 (defun dagger-run-file (orgfile)
-  "Execute all named fixtureyaml blocks in ORGFILE and save the results."
+  "Execute bash blocks in ORGFILE (fixtureyaml is handled by yamldagger.sh)."
   (find-file orgfile)
   (org-babel-map-src-blocks nil
-    (let ((name (org-element-property :name (org-element-at-point))))
-      (when (and name (string= lang "fixtureyaml"))
-        (message "%s Executing %s..." (format-time-string "%H:%M:%S") name)
-        (org-babel-execute-src-block))))
+    (when (string= lang "bash")
+      (message "%s Executing %s %s..." (format-time-string "%H:%M:%S") lang
+               (or (org-element-property :name (org-element-at-point)) "(unnamed)"))
+      (org-babel-execute-src-block)))
   (save-buffer)
   (kill-buffer))
 

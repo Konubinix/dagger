@@ -94,15 +94,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[6d7961e8901e316fc3b62883aa44306cabf37832]: debian_timezone
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout
-  #+end_src
+#+RESULTS: debian_timezone
+:results:
+#+NAME: debian_timezone-run
+#+begin_src bash :exports code :eval no-export
+dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout
+#+end_src
 
-  #+RESULTS[2888a8ee6cf352d07f5efc22cf9b9154b2d3485a]:
-  : /usr/share/zoneinfo/Europe/Paris
-  :end:
+#+RESULTS[01a6b12292aadb99ade1a778711d2a6df5f24bb4]: debian_timezone-run
+: /usr/share/zoneinfo/Europe/Paris
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/debian_timezone" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<debian_timezone-run()>>
+#+END_SRC
+:end:
 
   #+NAME: debian_no_recommends
   #+begin_src fixtureyaml
@@ -112,16 +117,21 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[b7cd828fbfcda0bd8df973c8305bdc1065da95bf]: debian_no_recommends
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call debian with-exec --args="cat","/etc/apt/apt.conf.d/01norecommend" stdout
-  #+end_src
+#+RESULTS: debian_no_recommends
+:results:
+#+NAME: debian_no_recommends-run
+#+begin_src bash :exports code :eval no-export
+dagger call debian with-exec --args="cat","/etc/apt/apt.conf.d/01norecommend" stdout
+#+end_src
 
-  #+RESULTS[7671b80fff5b33dcc8a2217e5ec239b326dc5eb9]:
-  : APT::Install-Recommends "0";
-  : APT::Install-Suggests "0";
-  :end:
+#+RESULTS[0de417fd2a0269c3fb962c932fc14b820cda354f]: debian_no_recommends-run
+: APT::Install-Recommends "0";
+: APT::Install-Suggests "0";
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/debian_no_recommends" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<debian_no_recommends-run()>>
+#+END_SRC
+:end:
 
   #+NAME: debian_distro_packages
   #+begin_src fixtureyaml
@@ -133,15 +143,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[c4ca8b6d3f2313336e7f7243c8ba185272f9292a]: debian_distro_packages
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call debian --distro-packages=curl with-exec --args="which","curl" stdout
-  #+end_src
+#+RESULTS: debian_distro_packages
+:results:
+#+NAME: debian_distro_packages-run
+#+begin_src bash :exports code :eval no-export
+dagger call debian --distro-packages=curl with-exec --args="which","curl" stdout
+#+end_src
 
-  #+RESULTS[6eb3d18518d65c1bff16ba19f04aad31431ff685]:
-  : /usr/bin/curl
-  :end:
+#+RESULTS[7c5824f53575d6bcc11d74523151492a63c48b0b]: debian_distro_packages-run
+: /usr/bin/curl
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/debian_distro_packages" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<debian_distro_packages-run()>>
+#+END_SRC
+:end:
 
 * Debian with a default user
 
@@ -163,15 +178,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[7e64e3c9664f58b69957c7ec81573005cf09144c]: debian_user_check
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call debian-user with-exec --args="id","sam" stdout
-  #+end_src
+#+RESULTS: debian_user_check
+:results:
+#+NAME: debian_user_check-run
+#+begin_src bash :exports code :eval no-export
+dagger call debian-user with-exec --args="id","sam" stdout
+#+end_src
 
-  #+RESULTS[2b2983050ff2cd255654a8c58e45e97a477524a7]:
-  : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
-  :end:
+#+RESULTS[898165760f23cc8ed923ba7e61bd3a00a2e3503b]: debian_user_check-run
+: uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/debian_user_check" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<debian_user_check-run()>>
+#+END_SRC
+:end:
 
 * Python with a user and virtualenv on Debian
 
@@ -200,15 +220,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[edff76b97232adf7cbd5a67a7705916ca3500770]: debian_python_user_venv_check
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call debian-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
-  #+end_src
+#+RESULTS: debian_python_user_venv_check
+:results:
+#+NAME: debian_python_user_venv_check-run
+#+begin_src bash :exports code :eval no-export
+dagger call debian-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
+#+end_src
 
-  #+RESULTS[b5dd97168b748155cec4d48a964c17c2e41c04ac]:
-  : Python 3.13.5
-  :end:
+#+RESULTS[ac345ff39b6f97909cf1e495f555e3e80ad19057]: debian_python_user_venv_check-run
+: Python 3.13.5
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/debian_python_user_venv_check" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<debian_python_user_venv_check-run()>>
+#+END_SRC
+:end:
 
 * Extracting the localtime file
 
@@ -235,13 +260,18 @@ chain:
 post: test -s "$TMP/out/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[777620baf080169887ef8ae5cf6598961515df73]: debian_localtime_export
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call debian-localtime export --path="$TMP/out/localtime" > /dev/null
-  test -s "$TMP/out/localtime" && echo "non-empty"
-  #+end_src
+#+RESULTS: debian_localtime_export
+:results:
+#+NAME: debian_localtime_export-run
+#+begin_src bash :exports code :eval no-export
+dagger call debian-localtime export --path="$TMP/out/localtime" > /dev/null
+test -s "$TMP/out/localtime" && echo "non-empty"
+#+end_src
 
-  #+RESULTS[0311bc4f560d7f8bb92ef7ad0f8be2e3b53f6049]:
-  : non-empty
-  :end:
+#+RESULTS[4292ba9c4765294ea5425370cf7b11dad2328abd]: debian_localtime_export-run
+: non-empty
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/debian_localtime_export" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<debian_localtime_export-run()>>
+#+END_SRC
+:end:

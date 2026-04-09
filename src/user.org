@@ -97,7 +97,6 @@ from dagger import function
   def as_user(
       self,
       ctr: dagger.Container,
-      uid: int = 1000,
       username: str | None = None,
   ) -> dagger.Container:
       """Switch to user and set workdir to their home."""
@@ -127,7 +126,7 @@ from dagger import function
   ) -> dagger.Container:
       """Create a user and switch to it (SETUP_USER + AS_USER)."""
       ctr = self.setup_user(ctr, uid=uid, username=username, sudoer=sudoer, groups=groups)
-      ctr = self.as_user(ctr, uid=uid, username=username)
+      ctr = self.as_user(ctr, username=username)
       return ctr
   #+end_src
 
@@ -141,15 +140,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[84729e04121e22cfb1858e425b78310ab46feb48]: use_user_whoami
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine-user with-exec --args="whoami" stdout
-  #+end_src
+#+RESULTS: use_user_whoami
+:results:
+#+NAME: use_user_whoami-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine-user with-exec --args="whoami" stdout
+#+end_src
 
-  #+RESULTS[598314540270cb528c156af82b8c46b52e84879f]:
-  : sam
-  :end:
+#+RESULTS[4ecb3c055f5fd5a1e054835510f2459f46c86908]: use_user_whoami-run
+: sam
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/use_user_whoami" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<use_user_whoami-run()>>
+#+END_SRC
+:end:
 
   #+NAME: use_user_workdir
   #+begin_src fixtureyaml
@@ -159,12 +163,17 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[42b210ef97245f0d08c57b8c79d3fccbfc73bbb7]: use_user_workdir
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine-user with-exec --args="pwd" stdout
-  #+end_src
+#+RESULTS: use_user_workdir
+:results:
+#+NAME: use_user_workdir-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine-user with-exec --args="pwd" stdout
+#+end_src
 
-  #+RESULTS[eb99389b500365541b1090dbc071bf550d4dbba6]:
-  : /home/sam
-  :end:
+#+RESULTS[0bc83024e1a49608702456b976d60875e93bc706]: use_user_workdir-run
+: /home/sam
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/use_user_workdir" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<use_user_workdir-run()>>
+#+END_SRC
+:end:

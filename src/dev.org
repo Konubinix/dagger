@@ -34,6 +34,7 @@ The bootstrap flow:
 import json
 from pathlib import Path
 from typing import Annotated
+from shlex import split
 
 import dagger
 from dagger import DefaultPath, dag, function, object_type
@@ -60,8 +61,9 @@ ORG_PIN = (_PROJECT_ROOT / ".org-pin").read_text().strip()
   - =tangle= tangles all org files. =tangle-nodagger.sh= accepts
     file arguments, so we pass all org files to get a full tangle
     (its no-args default only tangles bootstrap files).
-  - =run= executes all org-babel blocks via =run-nodagger.sh=.
-    The bash blocks call dagger, so nested access is required.
+  - =run= executes bash blocks (=dagger call= commands) via
+    =run-nodagger.sh=. Fixtureyaml blocks are handled separately
+    by =yamldagger.sh=. Nested dagger access is required.
   - =test= runs the test suite via =test-nodagger.sh= (pytest).
     Nested dagger access is required. It installs =dagger-io= from
     PyPI because the test container is a plain Debian box, not a
@@ -84,150 +86,158 @@ ORG_PIN = (_PROJECT_ROOT / ".org-pin").read_text().strip()
   test harness, so =DefaultPath= always fires.
 
   #+begin_src python
-  @object_type
-  class Dev:
-      debian_image: str = "debian:bookworm-slim"
+    @object_type
+    class Dev:
+        debian_image: str = "debian:bookworm-slim"
 
-      @function
-      def container(self) -> dagger.Container:
-          """Dev container with emacs, git, ruff, pytest, and dagger CLI."""
-          ctr = (
-              dag.container()
-              .from_(self.debian_image)
-              .with_exec(
-                  [
-                      "apt-get", "update",
-                  ]
-              )
-              .with_exec(
-                  [
-                      "apt-get", "install", "-y", "--no-install-recommends",
-                      "emacs-nox", "git", "python3", "python3-pip",
-                      "python3-venv", "curl", "ca-certificates",
-                  ]
-              )
-              .with_exec(
-                  [
-                      "pip", "install", "--break-system-packages",
-                      "ruff", "pytest", "pytest-asyncio", "pyyaml",
-                  ]
-              )
-              .with_exec(
-                  [
-                      "sh", "-c",
-                      f"curl -fsSL https://dl.dagger.io/dagger/install.sh"
-                      f" | DAGGER_VERSION={DAGGER_VERSION} BIN_DIR=/usr/local/bin sh",
-                  ]
-              )
-          )
-          # Clone and set up pinned org-mode (cached in this layer)
-          ctr = (
-              ctr
-              .with_exec(
-                  [
-                      "git", "clone", "--quiet",
-                      "https://git.savannah.gnu.org/git/emacs/org-mode.git",
-                      "/opt/org",
-                  ]
-              )
-              .with_exec(["git", "-C", "/opt/org", "checkout", "--quiet", ORG_PIN])
-              .with_exec(
-                  [
-                      "emacs", "--batch", "--no-init-file",
-                      "--eval",
-                      '(progn'
-                      '  (push "/opt/org/lisp" load-path)'
-                      '  (require (quote autoload))'
-                      '  (setq generated-autoload-file "/opt/org/lisp/org-loaddefs.el")'
-                      '  (update-directory-autoloads "/opt/org/lisp"))',
-                  ]
-              )
-              .with_exec(
-                  [
-                      "sh", "-c",
-                      "cd /opt/org/lisp && emacs --batch --no-init-file"
-                      ' --eval \'(progn'
-                      "  (push \\\"/opt/org/lisp\\\" load-path)"
-                      "  (load \\\"/opt/org/mk/org-fixup.el\\\")"
-                      "  (org-make-org-version"
-                      '    \\"0\\" \\"0\\"))\' 2>/dev/null || true',
-                  ]
-              )
-          )
-          return ctr
+        @function
+        def container(self) -> dagger.Container:
+            """Dev container with emacs, git, ruff, pytest, and dagger CLI."""
+            ctr = (
+                dag.container()
+                .from_(self.debian_image)
+                .with_exec(
+                    [
+                        "apt-get", "update",
+                    ]
+                )
+                .with_exec(
+                    [
+                        "apt-get", "install", "-y", "--no-install-recommends",
+                        "emacs-nox", "git", "python3", "python3-pip",
+                        "python3-venv", "curl", "ca-certificates",
+                    ]
+                )
+                .with_exec(
+                    [
+                        "pip", "install", "--break-system-packages",
+                        "ruff", "pytest", "pytest-asyncio", "pyyaml",
+                    ]
+                )
+                .with_exec(
+                    [
+                        "sh", "-c",
+                        f"curl -fsSL https://dl.dagger.io/dagger/install.sh"
+                        f" | DAGGER_VERSION={DAGGER_VERSION} BIN_DIR=/usr/local/bin sh",
+                    ]
+                )
+            )
+            # Clone and set up pinned org-mode (cached in this layer)
+            ctr = (
+                ctr
+                .with_exec(
+                    [
+                        "git", "clone", "--quiet",
+                        "https://git.savannah.gnu.org/git/emacs/org-mode.git",
+                        "/opt/org",
+                    ]
+                )
+                .with_exec(["git", "-C", "/opt/org", "checkout", "--quiet", ORG_PIN])
+                .with_exec(
+                    [
+                        "emacs", "--batch", "--no-init-file",
+                        "--eval",
+                        '(progn'
+                        '  (push "/opt/org/lisp" load-path)'
+                        '  (require (quote autoload))'
+                        '  (setq generated-autoload-file "/opt/org/lisp/org-loaddefs.el")'
+                        '  (update-directory-autoloads "/opt/org/lisp"))',
+                    ]
+                )
+                .with_exec(
+                    [
+                        "sh", "-c",
+                        "cd /opt/org/lisp && emacs --batch --no-init-file"
+                        ' --eval \'(progn'
+                        "  (push \\\"/opt/org/lisp\\\" load-path)"
+                        "  (load \\\"/opt/org/mk/org-fixup.el\\\")"
+                        "  (org-make-org-version"
+                        '    \\"0\\" \\"0\\"))\' 2>/dev/null || true',
+                    ]
+                )
+            )
+            return ctr
 
-      def _work_container(
-          self,
-          source: dagger.Directory,
-          with_org: bool = False,
-      ) -> dagger.Container:
-          """Mount source into /work, optionally symlinking pinned org-mode."""
-          ctr = (
-              self.container()
-              .with_workdir("/work")
-              .with_directory("/work", source)
-          )
-          if with_org:
-              ctr = ctr.with_exec(
-                  [
-                      "sh", "-c",
-                      "mkdir -p .tangle-deps && ln -sf /opt/org .tangle-deps/org",
-                  ]
-              )
-          return ctr
+        def _work_container(
+            self,
+            source: dagger.Directory,
+            with_org: bool = False,
+        ) -> dagger.Container:
+            """Mount source into /work, optionally symlinking pinned org-mode."""
+            ctr = (
+                self.container()
+                .with_workdir("/work")
+                .with_directory("/work", source)
+            )
+            if with_org:
+                ctr = ctr.with_exec(
+                    [
+                        "sh", "-c",
+                        "mkdir -p .tangle-deps && ln -sf /opt/org .tangle-deps/org",
+                    ]
+                )
+            return ctr
 
-      @function
-      async def tangle(
-          self,
-          source: Annotated[dagger.Directory, DefaultPath(".")],
-      ) -> dagger.Directory:
-          """Tangle all org files, returning the directory with generated code."""
-          return await (
-              self._work_container(source, with_org=True)
-              .with_exec(
-                  [
-                      "sh", "-c",
-                      "./tangle-nodagger.sh"
-                      " readme.org TECHNICAL.org src/*.org tests/*.org doc/*.org",
-                  ]
-              )
-              .directory("/work")
-          )
+        @function
+        async def tangle(
+            self,
+            source: Annotated[dagger.Directory, DefaultPath(".")],
+        ) -> dagger.Directory:
+            """Tangle all org files, returning the directory with generated code."""
+            return await (
+                self._work_container(source, with_org=True)
+                .with_exec(
+                    [
+                        "sh", "-c",
+                        "./tangle-nodagger.sh"
+                        " readme.org TECHNICAL.org src/*.org tests/*.org examples/*/readme.org",
+                    ],
+                    experimental_privileged_nesting=True,
+                )
+                .directory("/work")
+            )
 
-      @function
-      async def run(
-          self,
-          source: Annotated[dagger.Directory, DefaultPath(".")],
-      ) -> dagger.Directory:
-          """Execute org-babel blocks and save results."""
-          return await (
-              self._work_container(source, with_org=True)
-              .with_exec(
-                  ["./run-nodagger.sh"],
-                  experimental_privileged_nesting=True,
-              )
-              .directory("/work")
-          )
+        @function
+        async def run(
+            self,
+            source: Annotated[dagger.Directory, DefaultPath(".")],
+            no_cache: bool = False,
+            args: str="",
+        ) -> dagger.Directory:
+            """Execute org-babel blocks and save results."""
+            cmd = ["./run-nodagger.sh"]
+            if no_cache:
+                cmd.append("--no-cache")
+            if args:
+                cmd += split(args)
+            return await (
+                self._work_container(source, with_org=True)
+                .with_exec(
+                    cmd,
+                    experimental_privileged_nesting=True,
+                )
+                .directory("/work")
+            )
 
-      @function
-      async def test(
-          self,
-          source: Annotated[dagger.Directory, DefaultPath(".")],
-      ) -> str:
-          """Run the test suite."""
-          return await (
-              self._work_container(source)
-              .with_exec(
-                  [
-                      "pip", "install", "--break-system-packages",
-                      "--quiet", f"dagger-io=={DAGGER_VERSION}",
-                  ]
-              )
-              .with_exec(
-                  ["./test-nodagger.sh"],
-                  experimental_privileged_nesting=True,
-              )
-              .stdout()
-          )
+        @function
+        async def test(
+            self,
+            source: Annotated[dagger.Directory, DefaultPath(".")],
+        ) -> str:
+            """Run the test suite."""
+            return await (
+                self._work_container(source)
+                .with_exec(
+                    [
+                        "pip", "install", "--break-system-packages",
+                        "--quiet", f"dagger-io=={DAGGER_VERSION}",
+                    ]
+                )
+                .with_exec(
+                    ["./test-nodagger.sh"],
+                    experimental_privileged_nesting=True,
+                )
+                .stdout()
+            )
 
   #+end_src

@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 from typing import Annotated
+from shlex import split
 
 import dagger
 from dagger import DefaultPath, dag, function, object_type
@@ -136,8 +137,9 @@ class Dev:
                     "sh",
                     "-c",
                     "./tangle-nodagger.sh"
-                    " readme.org TECHNICAL.org src/*.org tests/*.org doc/*.org",
-                ]
+                    " readme.org TECHNICAL.org src/*.org tests/*.org examples/*/readme.org",
+                ],
+                experimental_privileged_nesting=True,
             )
             .directory("/work")
         )
@@ -146,12 +148,19 @@ class Dev:
     async def run(
         self,
         source: Annotated[dagger.Directory, DefaultPath(".")],
+        no_cache: bool = False,
+        args: str = "",
     ) -> dagger.Directory:
         """Execute org-babel blocks and save results."""
+        cmd = ["./run-nodagger.sh"]
+        if no_cache:
+            cmd.append("--no-cache")
+        if args:
+            cmd += split(args)
         return await (
             self._work_container(source, with_org=True)
             .with_exec(
-                ["./run-nodagger.sh"],
+                cmd,
                 experimental_privileged_nesting=True,
             )
             .directory("/work")

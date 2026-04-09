@@ -1,0 +1,4 @@
+Creating cluster...
+Cluster 'test' created.
+NAME            STATUS   ROLES           AGE
+test-node       Ready    control-plane   1m

@@ -1,0 +1,14 @@
+{
+  "name": "docker_in_docker",
+  "engineVersion": "v0.20.3",
+  "sdk": {
+    "source": "python"
+  },
+  "dependencies": [
+    {
+      "name": "lib",
+      "source": "../.."
+    }
+  ],
+  "source": ".dagger"
+}

@@ -78,7 +78,7 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
       if base is None:
           base = dag.container().from_(self.dind_ubuntu_image)
       if src is None:
-          src = dag.address(".").directory()
+          src = dag.current_module().source()
 
       return (
           base
@@ -94,24 +94,6 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
           .with_exec(["sh", "/tmp/docker-repo-install.sh"])
       )
   #+end_src
-
-  #+NAME: dind_docker_installed
-  #+begin_src fixtureyaml
-func: dind-container
-chain:
-  - with-exec: [docker, --version]
-  - stdout
-  #+end_src
-
-  #+RESULTS[3595ab3467f2a1dcbacdb430fb3b489f4cb77b9f]: dind_docker_installed
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call dind-container with-exec --args="docker","--version" stdout
-  #+end_src
-
-  #+RESULTS[76415b1bf2ae8d16d984b535bea5f493b16693d4]:
-  : Docker version 29.3.1, build c2be9cc
-  :end:
 
 * Running commands with dockerd
   :PROPERTIES:
@@ -159,12 +141,17 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[de157bd0460e994b6da61535e090ab514dc50b45]: dind_docker_info
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call dind-with-docker --cmd="docker info --format '{{.OSType}}'" stdout
-  #+end_src
+#+RESULTS: dind_docker_info
+:results:
+#+NAME: dind_docker_info-run
+#+begin_src bash :exports code :eval no-export
+dagger call dind-with-docker --cmd="docker info --format '{{.OSType}}'" stdout
+#+end_src
 
-  #+RESULTS[33b96daf6164c139b2af898b2e8cf5564600e744]:
-  : linux
-  :end:
+#+RESULTS[bbd288c28614644ff3eed04080803697c230079c]: dind_docker_info-run
+: linux
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/dind_docker_info" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<dind_docker_info-run()>>
+#+END_SRC
+:end:

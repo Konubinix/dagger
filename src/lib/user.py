@@ -81,7 +81,6 @@ def setup_user(
 def as_user(
     self,
     ctr: dagger.Container,
-    uid: int = 1000,
     username: str | None = None,
 ) -> dagger.Container:
     """Switch to user and set workdir to their home."""
@@ -108,7 +107,7 @@ def use_user(
 ) -> dagger.Container:
     """Create a user and switch to it (SETUP_USER + AS_USER)."""
     ctr = self.setup_user(ctr, uid=uid, username=username, sudoer=sudoer, groups=groups)
-    ctr = self.as_user(ctr, uid=uid, username=username)
+    ctr = self.as_user(ctr, username=username)
     return ctr
 
 

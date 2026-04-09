@@ -4,6 +4,15 @@
 ;; Don't prompt for code block evaluation
 (setq org-confirm-babel-evaluate nil)
 
+;; In batch mode, any interactive prompt means something is misconfigured
+;; (e.g. unknown language with :comments yes).  Fail loudly instead of
+;; hanging or silently skipping blocks.
+(when noninteractive
+  (dolist (fn '(read-string read-from-minibuffer completing-read))
+    (advice-add fn :before
+                (lambda (&rest _)
+                  (error "Tangle aborted: batch Emacs cannot interact (check language modes in tangle.el)")))))
+
 ;; Load pinned org-mode from .tangle-deps BEFORE anything else loads the
 ;; built-in org.  This must happen before (require 'ob-shell) since that
 ;; transitively loads org.
@@ -21,6 +30,9 @@
 ;; Load babel languages needed for tangling
 (require 'ob-shell)
 (require 'ob-python)
+
+;; Map nix to conf-mode so #+begin_src nix blocks tangle without nix-mode
+(add-to-list 'org-src-lang-modes '("nix" . conf))
 
 ;; Add link comments and blank lines between blocks in tangled output
 (setq org-babel-default-header-args

@@ -36,7 +36,7 @@ def dind_container(
     if base is None:
         base = dag.container().from_(self.dind_ubuntu_image)
     if src is None:
-        src = dag.address(".").directory()
+        src = dag.current_module().source()
 
     return (
         base.with_exec(["apt-get", "update"])

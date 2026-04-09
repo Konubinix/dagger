@@ -4,7 +4,7 @@
 # Usage:
 #   ./tangle-nodagger.sh                 # tangle only mode 2 bootstrap files
 #   ./tangle-nodagger.sh src/foo.org     # tangle a specific file
-set -eu
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -40,15 +40,21 @@ fi
 tangle_file() {
     local orgfile="$1"
     echo "Tangling $orgfile..."
-    local tangled_list
-    tangled_list=$(emacs --batch --no-init-file \
+    local raw_output tangled_list rc=0
+    raw_output=$(emacs --batch --no-init-file \
         -l "$SCRIPT_DIR/tangle.el" \
         --eval "(progn
                   (require 'org)
                   (find-file \"$orgfile\")
                   (let ((files (org-babel-tangle)))
                     (dolist (f files) (princ (format \"%s\n\" f))))
-                  (kill-buffer))" 2>&1 | grep -E '^/' || true)
+                  (kill-buffer))" 2>&1) || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "ERROR: emacs tangle failed (exit $rc):" >&2
+        echo "$raw_output" >&2
+        return "$rc"
+    fi
+    tangled_list=$(echo "$raw_output" | grep -E '^/' || true)
     # Post-process tangled files
     for f in $tangled_list; do
         [ -f "$f" ] || continue

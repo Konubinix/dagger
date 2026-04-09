@@ -1,0 +1,12 @@
+userfunction: gunicorn-check
+project: examples/flask_application
+func: alpine-python-user-venv
+args:
+  pip-packages: [flask, gunicorn]
+chain:
+  - with-file:
+      path: /app/app.py
+      source: "${ROOT}/examples/flask_application/app.py"
+  - with-exec: [gunicorn, --check-config, "app:app"]
+  - with-exec: [sh, -c, "echo gunicorn config ok"]
+  - stdout

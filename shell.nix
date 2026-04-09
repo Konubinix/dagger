@@ -1,3 +1,4 @@
+# [[file:tests/testing.org::*Nix shell for host testing][Nix shell for host testing:2]]
 { pkgs ? import <nixpkgs> {} }:
 
 pkgs.mkShell {
@@ -8,3 +9,4 @@ pkgs.mkShell {
     python313Packages.pyyaml
   ];
 }
+# Nix shell for host testing:2 ends here

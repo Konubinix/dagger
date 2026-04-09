@@ -1,3 +1,5 @@
+userfunction: home-check
+project: examples/non_root_user
 func: alpine-user
 chain:
   - with-exec: [pwd]

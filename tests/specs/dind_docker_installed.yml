@@ -1,4 +1,0 @@
-func: dind-container
-chain:
-  - with-exec: [docker, --version]
-  - stdout

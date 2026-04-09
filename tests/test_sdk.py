@@ -47,8 +47,44 @@ def run_shell(cmd, tmp_path):
     return result.stdout.rstrip("\n")
 
 
+def run_userfunction(spec, tmp_path):
+    """Run a userfunction spec via its project's Dagger module."""
+    userfunction = spec["userfunction"]
+    project = spec["project"]
+    cmd = ["dagger", "call", "-m", project, userfunction]
+
+    # Add --src if spec has with-file steps referencing ${ROOT}
+    src_dirs = set()
+    for step in spec.get("chain", []):
+        if isinstance(step, dict) and "with-file" in step:
+            source = step["with-file"].get("source", "")
+            source = source.replace("${ROOT}/", "").replace("$ROOT/", "")
+            if source:
+                src_dirs.add(str(Path(source).parent))
+    if src_dirs:
+        if len(src_dirs) == 1:
+            cmd.extend(["--src", str(ROOT / src_dirs.pop())])
+        else:
+            cmd.extend(["--src", str(ROOT)])
+
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(ROOT),
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"run_userfunction failed (exit {result.returncode}):\n"
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+    return result.stdout.rstrip("\n")
+
+
 async def run_spec(lib, spec, tmp_path):
     """Interpret a YAML spec dict as dagger SDK calls."""
+    if "userfunction" in spec:
+        return run_userfunction(spec, tmp_path)
     if "shell" in spec:
         return run_shell(spec["shell"], tmp_path)
 

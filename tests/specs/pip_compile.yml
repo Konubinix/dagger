@@ -1,0 +1,9 @@
+userfunction: pip-lock
+project: examples/python_environment
+func: pip-tools
+chain:
+  - with-file:
+      path: /home/sam/requirements.in
+      source: "${ROOT}/examples/python_environment/requirements.in"
+  - with-exec: [sh, -c, "pip-compile --quiet requirements.in && head -5 requirements.txt"]
+  - stdout

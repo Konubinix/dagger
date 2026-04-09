@@ -47,12 +47,17 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[3d4f99572dedc99c5ea9309649872d1976a05339]: pip_tools_available
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call pip-tools with-exec --args="which","pip-compile" stdout
-  #+end_src
+#+RESULTS: pip_tools_available
+:results:
+#+NAME: pip_tools_available-run
+#+begin_src bash :exports code :eval no-export
+dagger call pip-tools with-exec --args="which","pip-compile" stdout
+#+end_src
 
-  #+RESULTS[2253c8ef0c6afb76805b58dce010dadabb4f6a83]:
-  : /home/sam/.local/bin/pip-compile
-  :end:
+#+RESULTS[af6191d7191d3e51d08da26a69719db0a9e01909]: pip_tools_available-run
+: /home/sam/.local/bin/pip-compile
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/pip_tools_available" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<pip_tools_available-run()>>
+#+END_SRC
+:end:

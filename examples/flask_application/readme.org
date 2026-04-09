@@ -1,0 +1,136 @@
+:PROPERTIES:
+:ID:       b564b33f-b2f1-4408-855f-738a48daffb6
+:END:
+#+TITLE: Shipping a webhook receiver
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :results verbatim :cache yes
+
+I want to build a webhook receiver that listens for GitHub events and
+triggers deployments. It's a small Flask app — a single file with a
+few routes. I need to package it in a container, and I don't want to
+write the venv setup from scratch every time I start a new
+microservice like this.
+
+Here is my app:
+
+#+begin_src python :tangle app.py
+from flask import Flask
+
+app = Flask(__name__)
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    return "deployment triggered\n"
+
+
+@app.route("/health")
+def health():
+    return "ok\n"
+#+end_src
+
+First I set up my Dagger project and install daggerlib:
+
+#+begin_src bash :eval no-export
+dagger init --sdk=python
+dagger install github.com/Konubinix/daggerlib
+#+end_src
+
+#+RESULTS[d6944fcc24dccaf5a3a2e78ed0ae4a9b5d09d40f]:
+
+The following is only for testing purposes — it makes the project
+use the local daggerlib checkout instead of the published version:
+
+#+begin_src bash :eval no-export
+sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",|"../.."|' dagger.json
+#+end_src
+
+#+RESULTS[5b6339ed6b209c2bc103c0b4e60ac9dd71b8e70a]:
+
+Then I write my Dagger module. The =<<...>>= references below are
+filled in by the function definitions that follow — each section
+defines one function and shows what it does when called:
+
+#+begin_src python :tangle .dagger/src/flask_application/main.py :noweb yes
+from typing import Annotated
+
+import dagger
+from dagger import DefaultPath, dag, function, object_type
+
+
+@object_type
+class FlaskApplication:
+    <<flask-routes>>
+    <<gunicorn-check>>
+#+end_src
+
+* Packaging the app in a container
+
+  I write a Dagger function that gets a Python container with Flask
+  installed, injects my app, and verifies it loads:
+
+  #+NAME: flask_app_loads
+  #+begin_src fixtureyaml :eval no-export
+userfunction: flask-routes
+project: examples/flask_application
+func: alpine-python-user-venv
+args:
+  pip-packages: [flask]
+chain:
+  - with-file:
+      path: /app/app.py
+      source: "${ROOT}/examples/flask_application/app.py"
+  - with-exec: [python3, -c, "from app import app; print(sorted(r.rule for r in app.url_map.iter_rules() if r.rule != '/static/<path:filename>'))"]
+  - stdout
+  #+end_src
+
+* Running with gunicorn in production
+
+  In production, I don't use the Flask dev server — I need =gunicorn=
+  as the WSGI server. I add it to the same container and verify it
+  can find my app:
+
+  #+NAME: flask_gunicorn_check
+  #+begin_src fixtureyaml :eval no-export
+userfunction: gunicorn-check
+project: examples/flask_application
+func: alpine-python-user-venv
+args:
+  pip-packages: [flask, gunicorn]
+chain:
+  - with-file:
+      path: /app/app.py
+      source: "${ROOT}/examples/flask_application/app.py"
+  - with-exec: [gunicorn, --check-config, "app:app"]
+  - with-exec: [sh, -c, "echo gunicorn config ok"]
+  - stdout
+  #+end_src
+
+#+RESULTS: flask_gunicorn_check
+:results:
+#+NAME: gunicorn-check
+#+begin_src python
+@function
+async def gunicorn_check(self, src: Annotated[dagger.Directory, DefaultPath(".")]) -> str:
+    """Generated from test spec."""
+    return await (
+        dag.lib().alpine_python_user_venv(pip_packages=['flask', 'gunicorn'])
+        .with_file('/app/app.py', src.file('app.py'))
+        .with_exec(['gunicorn', '--check-config', 'app:app'])
+        .with_exec(['sh', '-c', 'echo gunicorn config ok'])
+        .stdout()
+    )
+#+end_src
+
+#+NAME: flask_gunicorn_check-run
+#+begin_src bash
+dagger call gunicorn-check
+#+end_src
+
+#+RESULTS[ae0fcda0fdf6230f805b5191cbf581b516cb297f]: flask_gunicorn_check-run
+: gunicorn config ok
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/flask_gunicorn_check" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<flask_gunicorn_check-run()>>
+#+END_SRC
+:end:

@@ -1,0 +1,11 @@
+userfunction: collect-debian
+project: examples/base_containers
+func: debian
+args:
+  distro-packages: [python3]
+chain:
+  - with-file:
+      path: /app/collector.py
+      source: "${ROOT}/examples/base_containers/collector.py"
+  - with-exec: [sh, -c, "echo 'disk full on /var/log' | python3 /app/collector.py"]
+  - stdout

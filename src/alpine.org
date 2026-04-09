@@ -54,15 +54,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[1713d76d13c912707056a7da0e52576cd98eca78]: alpine_timezone
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine with-exec --args="cat","/etc/timezone" stdout
-  #+end_src
+#+RESULTS: alpine_timezone
+:results:
+#+NAME: alpine_timezone-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine with-exec --args="cat","/etc/timezone" stdout
+#+end_src
 
-  #+RESULTS[edceca51788f31fff4bb68c4a0d2b6971d923738]:
-  : Europe/Paris
-  :end:
+#+RESULTS[556620ab84c15f3481d2b0b2b8e0b2329d1b623a]: alpine_timezone-run
+: Europe/Paris
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/alpine_timezone" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<alpine_timezone-run()>>
+#+END_SRC
+:end:
 
 * A base Alpine container with optional extra packages
   :PROPERTIES:
@@ -98,15 +103,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[08aa47b91718715981668a455eda0715fdaf77db]: alpine_distro_packages
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine --distro-packages=curl with-exec --args="which","curl" stdout
-  #+end_src
+#+RESULTS: alpine_distro_packages
+:results:
+#+NAME: alpine_distro_packages-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine --distro-packages=curl with-exec --args="which","curl" stdout
+#+end_src
 
-  #+RESULTS[200c50ddd922bfbca5025152685fe86be635771f]:
-  : /usr/bin/curl
-  :end:
+#+RESULTS[da373a0fc1256657d493f535c85f28147f18f809]: alpine_distro_packages-run
+: /usr/bin/curl
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/alpine_distro_packages" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<alpine_distro_packages-run()>>
+#+END_SRC
+:end:
 
 * A non-root user for safer workflows
   :PROPERTIES:
@@ -137,15 +147,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[785ecabca308136d490fbb94e1d4348ee96d0d1e]: alpine_user_check
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine-user with-exec --args="id","sam" stdout
-  #+end_src
+#+RESULTS: alpine_user_check
+:results:
+#+NAME: alpine_user_check-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine-user with-exec --args="id","sam" stdout
+#+end_src
 
-  #+RESULTS[b11dd3ac761d5ca466b7f65120a379da8603ae4c]:
-  : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
-  :end:
+#+RESULTS[9a69f0477095886b45a3490778154c1d71aa25b1]: alpine_user_check-run
+: uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/alpine_user_check" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<alpine_user_check-run()>>
+#+END_SRC
+:end:
 
   #+NAME: alpine_user_uid
   #+begin_src fixtureyaml
@@ -157,15 +172,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[f8c927f7a7f73bedd2e30ee927d565a94fb60950]: alpine_user_uid
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine-user --uid=2000 with-exec --args="id","-u" stdout
-  #+end_src
+#+RESULTS: alpine_user_uid
+:results:
+#+NAME: alpine_user_uid-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine-user --uid=2000 with-exec --args="id","-u" stdout
+#+end_src
 
-  #+RESULTS[c6489384c3e197763e06bc15ff62c070c2c11394]:
-  : 2000
-  :end:
+#+RESULTS[775851b0c15c6c1278e306bf19256a47ef154ea5]: alpine_user_uid-run
+: 2000
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/alpine_user_uid" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<alpine_user_uid-run()>>
+#+END_SRC
+:end:
 
 * Timezone artifacts for other containers
   :PROPERTIES:
@@ -200,17 +220,22 @@ chain:
 post: ls "$TMP/out" | sort
   #+end_src
 
-  #+RESULTS[0d46007e31434b56ca64560cf721fa4de2690aef]: alpine_tz_export
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine-tz export --path="$TMP/out" > /dev/null
-  ls "$TMP/out" | sort
-  #+end_src
+#+RESULTS: alpine_tz_export
+:results:
+#+NAME: alpine_tz_export-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine-tz export --path="$TMP/out" > /dev/null
+ls "$TMP/out" | sort
+#+end_src
 
-  #+RESULTS[501fd8e2b72c5b4334e89b88212de0d39472e2e0]:
-  : localtime
-  : timezone
-  :end:
+#+RESULTS[c0a21f135b5a3b9907adba119b4bfb97ba72b7b3]: alpine_tz_export-run
+: localtime
+: timezone
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/alpine_tz_export" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<alpine_tz_export-run()>>
+#+END_SRC
+:end:
 
 * Python on Alpine
   :PROPERTIES:
@@ -234,15 +259,20 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[ce1cdd33de659d3d3454c9dd82be9c15a7cea23f]: alpine_python_check
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine-python with-exec --args="python3","--version" stdout
-  #+end_src
+#+RESULTS: alpine_python_check
+:results:
+#+NAME: alpine_python_check-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine-python with-exec --args="python3","--version" stdout
+#+end_src
 
-  #+RESULTS[830ae8dc6a0872480c157b5d386af8631ad6cee7]:
-  : Python 3.12.12
-  :end:
+#+RESULTS[5104d991492199136f5ee5135b5a3705eb4f38e2]: alpine_python_check-run
+: Python 3.12.12
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/alpine_python_check" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<alpine_python_check-run()>>
+#+END_SRC
+:end:
 
 * Python with a user and virtualenv
   :PROPERTIES:
@@ -278,12 +308,17 @@ chain:
   - stdout
   #+end_src
 
-  #+RESULTS[08993d5c749ec2121caa66897c5a6dc7890bbb6f]: alpine_python_user_venv_check
-  :results:
-  #+begin_src bash :exports code :eval no-export
-  dagger call alpine-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
-  #+end_src
+#+RESULTS: alpine_python_user_venv_check
+:results:
+#+NAME: alpine_python_user_venv_check-run
+#+begin_src bash :exports code :eval no-export
+dagger call alpine-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
+#+end_src
 
-  #+RESULTS[2e20e636df872a948b9a17f1b5a7237c28361ef0]:
-  : Python 3.12.12
-  :end:
+#+RESULTS[50627b803982cc5be780c7723be3989f6dfa5964]: alpine_python_user_venv_check-run
+: Python 3.12.12
+
+#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/alpine_python_user_venv_check" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
+<<alpine_python_user_venv_check-run()>>
+#+END_SRC
+:end:
