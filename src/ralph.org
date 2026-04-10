@@ -368,7 +368,9 @@ from dagger import dag, function
   dagger call debian --distro-packages=python3-yaml with-file --path=/tmp/ralph.yml --source=src/ralph.yml with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
   #+end_src
 
-  #+RESULTS[d622db5d58703e1fecf1101746b83abd3286e07a]: ralph_yml_valid
+  #+RESULTS[69a96f6ef58e5fcbb1011c184ded065a9ebbf400]: ralph_yml_valid
+  : work.start
+  : 2
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "ralph_yml_valid") :noweb yes :exports none :comments no :padline no
   <<ralph_yml_valid()>>
@@ -382,10 +384,23 @@ from dagger import dag, function
   ralph-log-filter < tests/ralph_log_sample.txt 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
   #+end_src
 
-  #+RESULTS[70e8b89e03ad295a817bf07ed96f0208e5829e83]: log_filter_output
+  #+RESULTS[c138352f4e19bcf4c49b22d4dc9cb07b57ec07a6]: log_filter_output
+  : [ralph] starting ralph...
+  : [ralph] ralph started (PID 16)
+  : [file] Read: /tmp/ralph-workdir/ralph.yml
+  : [tool] Bash: mkdir -p .ralph/agent
+  : [file] Write: /tmp/ralph-workdir/.ralph/agent/scratchpad.md
+  : [event] event: work.picked
+  : [ralph] log-level changed to json
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "log_filter_output") :noweb yes :exports none :comments no :padline no
-  <<log_filter_output()>>
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "log_filter_output") :exports none :comments no :padline no
+  [ralph] starting ralph...
+  [ralph] ralph started (PID 16)
+  [file] Read: /tmp/ralph-workdir/ralph.yml
+  [tool] Bash: mkdir -p .ralph/agent
+  [file] Write: /tmp/ralph-workdir/.ralph/agent/scratchpad.md
+  [event] event: work.picked
+  [ralph] log-level changed to json
   #+END_SRC
 
 

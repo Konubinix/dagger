@@ -12,21 +12,22 @@ the same non-root user as production so I catch these issues early.
 
 First I set up my Dagger project and install daggerlib:
 
-#+begin_src bash :eval no-export
+#+begin_src bash :eval no-export :init yes
 dagger init --sdk=python
 dagger install github.com/Konubinix/daggerlib
 #+end_src
 
-#+RESULTS[d6944fcc24dccaf5a3a2e78ed0ae4a9b5d09d40f]:
+#+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
+: Initialized module non_root_user in /home/sam/prog/daggerlib/examples/non_root_user
 
 The following is only for testing purposes — it makes the project
 use the local daggerlib checkout instead of the published version:
 
-#+begin_src bash :eval no-export
+#+begin_src bash :eval no-export :init yes
 sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",|"../.."|' dagger.json
 #+end_src
 
-#+RESULTS[5b6339ed6b209c2bc103c0b4e60ac9dd71b8e70a]:
+#+RESULTS[c0e43fe49406c11e84dec1670d2236fec6890c1b]:
 
 
 Then I write my Dagger module. Each =<<...>>= reference is defined in
@@ -68,6 +69,9 @@ class NonRootUser:
   dagger call whoami-check
   #+end_src
 
+  #+RESULTS[fad65b3948bf87504083dda85354422e89915a80]: alpine_user_whoami
+  : sam
+
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_user_whoami") :noweb yes :exports none :comments no :padline no
   <<alpine_user_whoami()>>
   #+END_SRC
@@ -95,6 +99,9 @@ class NonRootUser:
   cd examples/non_root_user
   dagger call home-check
   #+end_src
+
+  #+RESULTS[b2f287d2ddac503fd132a646e99c25f61e17b1b2]: alpine_user_home
+  : /home/sam
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_user_home") :noweb yes :exports none :comments no :padline no
   <<alpine_user_home()>>
@@ -124,6 +131,9 @@ class NonRootUser:
   dagger call uid-check
   #+end_src
 
+  #+RESULTS[58a4db234090db9013989cc071c6cb85b318138f]: alpine_user_id
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
+
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_user_id") :noweb yes :exports none :comments no :padline no
   <<alpine_user_id()>>
   #+END_SRC
@@ -150,6 +160,9 @@ class NonRootUser:
   cd examples/non_root_user
   dagger call debian-uid-check
   #+end_src
+
+  #+RESULTS[a72846981884ed574d5c72b72bdd09d850a06c9f]: debian_user_id
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_user_id") :noweb yes :exports none :comments no :padline no
   <<debian_user_id()>>

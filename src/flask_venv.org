@@ -37,7 +37,7 @@ from dagger import function
   test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
   #+end_src
 
-  #+RESULTS[6123a8c74ceb95e4bfac6cd2efcd09340ff2c912]: flask_venv_export
+  #+RESULTS[f03ca3bc965312824ce23afe95e25755d8f950cb]: flask_venv_export
   : bin/flask exists
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "flask_venv_export") :noweb yes :exports none :comments no :padline no

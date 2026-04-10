@@ -31,21 +31,22 @@ def health():
 
 First I set up my Dagger project and install daggerlib:
 
-#+begin_src bash :eval no-export
+#+begin_src bash :eval no-export :init yes
 dagger init --sdk=python
 dagger install github.com/Konubinix/daggerlib
 #+end_src
 
-#+RESULTS[d6944fcc24dccaf5a3a2e78ed0ae4a9b5d09d40f]:
+#+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
+: Initialized module flask_application in /home/sam/prog/daggerlib/examples/flask_application
 
 The following is only for testing purposes — it makes the project
 use the local daggerlib checkout instead of the published version:
 
-#+begin_src bash :eval no-export
+#+begin_src bash :eval no-export :init yes
 sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",|"../.."|' dagger.json
 #+end_src
 
-#+RESULTS[5b6339ed6b209c2bc103c0b4e60ac9dd71b8e70a]:
+#+RESULTS[c0e43fe49406c11e84dec1670d2236fec6890c1b]:
 
 Then I write my Dagger module. The =<<...>>= references below are
 filled in by the function definitions that follow — each section
@@ -88,6 +89,9 @@ class FlaskApplication:
   dagger call flask-routes
   #+end_src
 
+  #+RESULTS[5c7143ac0879d1b8a88299acfccaab0fc6fe41ab]: flask_app_loads
+  : ['/health', '/webhook']
+
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "flask_app_loads") :noweb yes :exports none :comments no :padline no
   <<flask_app_loads()>>
   #+END_SRC
@@ -117,6 +121,9 @@ class FlaskApplication:
   cd examples/flask_application
   dagger call gunicorn-check
   #+end_src
+
+  #+RESULTS[45668d47fea6e6b97c1947274eaa92d0b3820af6]: flask_gunicorn_check
+  : gunicorn config ok
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "flask_gunicorn_check") :noweb yes :exports none :comments no :padline no
   <<flask_gunicorn_check()>>

@@ -1,5 +1,5 @@
 {
-  "name": "tmp.NTZqL4NLYm",
+  "name": "non_root_user",
   "engineVersion": "v0.20.3",
   "sdk": {
     "source": "python"
@@ -7,8 +7,8 @@
   "dependencies": [
     {
       "name": "lib",
-      "source": "github.com/Konubinix/daggerlib@main",
-      "pin": "00bb65148a932e949a2511d70fbf5b0c8735b9d1"
+      "source": "../.."
     }
-  ]
+  ],
+  "source": ".dagger"
 }

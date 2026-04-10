@@ -137,7 +137,7 @@ from dagger import function
   dagger call alpine-user with-exec --args="whoami" stdout
   #+end_src
 
-  #+RESULTS[4ecb3c055f5fd5a1e054835510f2459f46c86908]: use_user_whoami
+  #+RESULTS[baca674ff309228eac84cfda2d12e1ec759c1ae8]: use_user_whoami
   : sam
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "use_user_whoami") :noweb yes :exports none :comments no :padline no
@@ -149,7 +149,7 @@ from dagger import function
   dagger call alpine-user with-exec --args="pwd" stdout
   #+end_src
 
-  #+RESULTS[0bc83024e1a49608702456b976d60875e93bc706]: use_user_workdir
+  #+RESULTS[7b5db4fa4601bd9074289846c16340c2164e1825]: use_user_workdir
   : /home/sam
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "use_user_workdir") :noweb yes :exports none :comments no :padline no

@@ -91,7 +91,7 @@ from dagger import dag, function
   dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout
   #+end_src
 
-  #+RESULTS[01a6b12292aadb99ade1a778711d2a6df5f24bb4]: debian_timezone
+  #+RESULTS[3b48e62b28516aabd62e6852892debfb22a16b6f]: debian_timezone
   : /usr/share/zoneinfo/Europe/Paris
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_timezone") :noweb yes :exports none :comments no :padline no
@@ -103,7 +103,7 @@ from dagger import dag, function
   dagger call debian with-exec --args="cat","/etc/apt/apt.conf.d/01norecommend" stdout
   #+end_src
 
-  #+RESULTS[0de417fd2a0269c3fb962c932fc14b820cda354f]: debian_no_recommends
+  #+RESULTS[f41254d78519e2c68b87e1874bb07940c92c74e5]: debian_no_recommends
   : APT::Install-Recommends "0";
   : APT::Install-Suggests "0";
 
@@ -116,7 +116,7 @@ from dagger import dag, function
   dagger call debian --distro-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
-  #+RESULTS[7c5824f53575d6bcc11d74523151492a63c48b0b]: debian_distro_packages
+  #+RESULTS[9fd760172309b885539561965a4edd120a1349a7]: debian_distro_packages
   : /usr/bin/curl
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_distro_packages") :noweb yes :exports none :comments no :padline no
@@ -140,7 +140,7 @@ from dagger import dag, function
   dagger call debian-user with-exec --args="id","sam" stdout
   #+end_src
 
-  #+RESULTS[898165760f23cc8ed923ba7e61bd3a00a2e3503b]: debian_user_check
+  #+RESULTS[83ce61ca85ca9da5182823e11949ab18ccaa87a5]: debian_user_check
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_user_check") :noweb yes :exports none :comments no :padline no
@@ -171,7 +171,7 @@ from dagger import dag, function
   dagger call debian-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
   #+end_src
 
-  #+RESULTS[ac345ff39b6f97909cf1e495f555e3e80ad19057]: debian_python_user_venv_check
+  #+RESULTS[aadf36bca5592557d2785606170f73d6769e05dc]: debian_python_user_venv_check
   : Python 3.13.5
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_python_user_venv_check") :noweb yes :exports none :comments no :padline no
@@ -202,7 +202,7 @@ from dagger import dag, function
   test -s "$TMP/out/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[4292ba9c4765294ea5425370cf7b11dad2328abd]: debian_localtime_export
+  #+RESULTS[7805f8c03311c8b58254c0d31eadf2482fac60a6]: debian_localtime_export
   : non-empty
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_localtime_export") :noweb yes :exports none :comments no :padline no

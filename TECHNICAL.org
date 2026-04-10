@@ -147,7 +147,7 @@ programming setup, tangling pipeline, and editor configuration. See
          src/lib/user.py src/lib/main.py src/lib/__init__.py \
          tests/*.sh tests/test_use_cases.py \
          tangle.sh tangle.el test.sh run.sh
-  ./tangle-nodagger.sh
+  ./bootstrap.sh
   ./tangle.sh
   #+end_src
 
@@ -224,12 +224,13 @@ programming setup, tangling pipeline, and editor configuration. See
 
 * Org-mode pin
 
-  The scripts =tangle-nodagger.sh= and =run.sh= clone a pinned
-  org-mode commit. The pin lives in a single file so it cannot
-  diverge. The bash scripts inline the hash at tangle time via noweb.
+  The scripts =bootstrap.sh= and =run.sh= clone a pinned org-mode
+  commit. The pin lives in =.org-pin= (a plain file, not tangled)
+  so it cannot diverge. The bash scripts inline the hash at tangle
+  time via noweb.
 
   #+NAME: org-pin
-  #+begin_src conf :tangle .org-pin :comments no :padline no
+  #+begin_src conf :tangle no :comments no :padline no
   1025e3b49a98f175b124dbccd774918360fe7e11
   #+end_src
 
@@ -350,70 +351,6 @@ programming setup, tangling pipeline, and editor configuration. See
   ;;; tangle.el ends here
   #+end_src
 
-* Tangle without dagger (bootstrap)
-  :PROPERTIES:
-  :ID:       0474c6e4-ce96-4f94-8254-1824581b9f8f
-  :END:
-
-  This script solves the chicken-and-egg problem: =tangle.sh= is
-  itself a tangled file, so you need this bootstrap script to
-  generate it the first time. It uses host tools (emacs, git, ruff).
-
-  When called with arguments, it tangles the specified files instead.
-
-  #+begin_src bash :tangle tangle-nodagger.sh :shebang "#!/usr/bin/env bash" :noweb yes
-  # Bootstrap tangle using host tools (emacs, git, ruff).
-  # Usage:
-  #   ./tangle-nodagger.sh                 # tangle only bootstrap files
-  #   ./tangle-nodagger.sh src/foo.org     # tangle a specific file
-  set -euo pipefail
-
-  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-  <<ensure-org>>
-
-  tangle_file() {
-      local orgfile="$1"
-      echo "Tangling $orgfile..."
-      local raw_output tangled_list rc=0
-      raw_output=$(emacs --batch --no-init-file \
-          -l "$SCRIPT_DIR/tangle.el" \
-          --eval "(progn
-                    (require 'org)
-                    (find-file \"$orgfile\")
-                    (let ((files (org-babel-tangle)))
-                      (dolist (f files) (princ (format \"%s\n\" f))))
-                    (kill-buffer))" 2>&1) || rc=$?
-      if [ "$rc" -ne 0 ]; then
-          echo "ERROR: emacs tangle failed (exit $rc):" >&2
-          echo "$raw_output" >&2
-          return "$rc"
-      fi
-      tangled_list=$(echo "$raw_output" | grep -E '^/' || true)
-      # Post-process tangled files
-      for f in $tangled_list; do
-          [ -f "$f" ] || continue
-          # Strip trailing whitespace
-          sed -i 's/[[:space:]]*$//' "$f"
-          # Format Python files
-          case "$f" in
-              *.py) ruff format --quiet "$f" 2>/dev/null || true ;;
-          esac
-      done
-  }
-
-  if [ $# -eq 0 ]; then
-      # Bootstrap only: tangle the files that produce the shell scripts and main module
-      for f in "$SCRIPT_DIR"/TECHNICAL.org "$SCRIPT_DIR"/tests/testing.org; do
-          [ -f "$f" ] && tangle_file "$f"
-      done
-  else
-      for f in "$@"; do
-          tangle_file "$(realpath "$f")"
-      done
-  fi
-  #+end_src
-
 * Tangle script
   :PROPERTIES:
   :ID:       a7c3e1f4-5b2d-4d8e-9f6a-2c1b3e4d5f6a
@@ -512,6 +449,20 @@ programming setup, tangling pipeline, and editor configuration. See
       (save-buffer)
       (kill-buffer))
 
+    (defun dagger-init-file (orgfile)
+      "Execute init bash blocks (those with :init yes) in ORGFILE."
+      (find-file orgfile)
+      (org-babel-map-src-blocks nil
+        (let* ((info (org-babel-get-src-block-info t))
+               (params (nth 2 info)))
+          (when (and (string= lang "bash")
+                     (assq :init params))
+            (message "%s Init %s..." (format-time-string "%H:%M:%S")
+                     (or (org-element-property :name (org-element-at-point)) "(unnamed)"))
+            (org-babel-execute-src-block))))
+      (save-buffer)
+      (kill-buffer))
+
     ;;; run.el ends here
   #+end_src
 
@@ -570,6 +521,60 @@ programming setup, tangling pipeline, and editor configuration. See
       for f in "$@"; do
           test -f "$(realpath "$f")" # assert thanks to set -eu
           run_file "$(realpath "$f")"
+      done
+  fi
+  #+end_src
+
+* Init examples
+
+  Runs =:init yes= bash blocks in example readme.org files to
+  set up their dagger modules (=dagger init=, =dagger install=,
+  local checkout rewrite).
+
+  #+begin_src bash :tangle init-examples.sh :shebang "#!/usr/bin/env bash" :noweb yes
+  # Initialize example dagger modules.
+  # Usage:
+  #   ./init-examples.sh                       # init all examples
+  #   ./init-examples.sh --no-cache            # ignore cached results
+  #   ./init-examples.sh examples/foo/readme.org  # init a specific example
+  set -eu
+
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+  NO_CACHE=
+  if [ "${1:-}" = "--no-cache" ]; then
+      NO_CACHE=1
+      shift
+  fi
+
+  <<ensure-org>>
+
+  init_file() {
+      local orgfile="$1"
+      echo "Init $orgfile..."
+      local raw_output rc=0 no_cache_eval=""
+      if [ -n "$NO_CACHE" ]; then
+          no_cache_eval="(dagger-run-ignore-cache)"
+      fi
+      raw_output=$(emacs --batch --no-init-file \
+          -l "$SCRIPT_DIR/tangle.el" \
+          -l "$SCRIPT_DIR/run.el" \
+          --eval "(progn $no_cache_eval (dagger-init-file \"$orgfile\"))" 2>&1) || rc=$?
+      if [ "$rc" -ne 0 ]; then
+          echo "ERROR: init failed (exit $rc):" >&2
+          echo "$raw_output" >&2
+          return "$rc"
+      fi
+  }
+
+  if [ $# -eq 0 ]; then
+      for f in "$SCRIPT_DIR"/examples/*/readme.org; do
+          [ -f "$f" ] && init_file "$f"
+      done
+  else
+      for f in "$@"; do
+          test -f "$(realpath "$f")"
+          init_file "$(realpath "$f")"
       done
   fi
   #+end_src

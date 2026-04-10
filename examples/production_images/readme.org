@@ -13,21 +13,22 @@ the classic multi-stage build: build in Debian, run in distroless.
 
 First I set up my Dagger project and install daggerlib:
 
-#+begin_src bash :eval no-export
+#+begin_src bash :eval no-export :init yes
 dagger init --sdk=python
 dagger install github.com/Konubinix/daggerlib
 #+end_src
 
-#+RESULTS[d6944fcc24dccaf5a3a2e78ed0ae4a9b5d09d40f]:
+#+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
+: Initialized module production_images in /home/sam/prog/daggerlib/examples/production_images
 
 The following is only for testing purposes — it makes the project
 use the local daggerlib checkout instead of the published version:
 
-#+begin_src bash :eval no-export
+#+begin_src bash :eval no-export :init yes
 sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",|"../.."|' dagger.json
 #+end_src
 
-#+RESULTS[5b6339ed6b209c2bc103c0b4e60ac9dd71b8e70a]:
+#+RESULTS[c0e43fe49406c11e84dec1670d2236fec6890c1b]:
 
 Here is my service — it logs a startup message with timezone info:
 
@@ -69,6 +70,10 @@ class ProductionImages:
   ls "$TMP/out" | sort
   #+end_src
 
+  #+RESULTS[a5017cb1acdd53279cece8229cd62f921c503b91]: tz_artifacts
+  : localtime
+  : timezone
+
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "tz_artifacts") :noweb yes :exports none :comments no :padline no
   <<tz_artifacts()>>
   #+END_SRC
@@ -98,6 +103,9 @@ class ProductionImages:
   dagger call run-distroless
   #+end_src
 
+  #+RESULTS[49ea475491aa2230b7dc97912cbbbdf0e37e7e14]: distroless_service
+  : service started (timezone: CEST)
+
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_service") :noweb yes :exports none :comments no :padline no
   <<distroless_service()>>
   #+END_SRC
@@ -115,6 +123,9 @@ class ProductionImages:
   dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out2/localtime" > /dev/null
   test -s "$TMP/out2/localtime" && echo "non-empty"
   #+end_src
+
+  #+RESULTS[06eb9d6f97a655536a63d6c7473305e241804e6b]: distroless_static
+  : non-empty
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_static") :noweb yes :exports none :comments no :padline no
   <<distroless_static()>>

@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
-# [[file:TECHNICAL.org::*Tangle without dagger (bootstrap)][Tangle without dagger (bootstrap):1]]
-# Bootstrap tangle using host tools (emacs, git, ruff).
+# [[file:TECHNICAL.org::*Init examples][Init examples:1]]
+# Initialize example dagger modules.
 # Usage:
-#   ./tangle-nodagger.sh                 # tangle only bootstrap files
-#   ./tangle-nodagger.sh src/foo.org     # tangle a specific file
-set -euo pipefail
+#   ./init-examples.sh                       # init all examples
+#   ./init-examples.sh --no-cache            # ignore cached results
+#   ./init-examples.sh examples/foo/readme.org  # init a specific example
+set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+NO_CACHE=
+if [ "${1:-}" = "--no-cache" ]; then
+    NO_CACHE=1
+    shift
+fi
 
 # Ensure pinned org-mode is cloned and up-to-date
 ORG_PIN="1025e3b49a98f175b124dbccd774918360fe7e11"
@@ -37,44 +44,32 @@ if [ ! -d "$ORG_DIR" ]; then
                                         \"$ORG_GIT_VERSION\"))") 2>/dev/null || true
 fi
 
-tangle_file() {
+init_file() {
     local orgfile="$1"
-    echo "Tangling $orgfile..."
-    local raw_output tangled_list rc=0
+    echo "Init $orgfile..."
+    local raw_output rc=0 no_cache_eval=""
+    if [ -n "$NO_CACHE" ]; then
+        no_cache_eval="(dagger-run-ignore-cache)"
+    fi
     raw_output=$(emacs --batch --no-init-file \
         -l "$SCRIPT_DIR/tangle.el" \
-        --eval "(progn
-                  (require 'org)
-                  (find-file \"$orgfile\")
-                  (let ((files (org-babel-tangle)))
-                    (dolist (f files) (princ (format \"%s\n\" f))))
-                  (kill-buffer))" 2>&1) || rc=$?
+        -l "$SCRIPT_DIR/run.el" \
+        --eval "(progn $no_cache_eval (dagger-init-file \"$orgfile\"))" 2>&1) || rc=$?
     if [ "$rc" -ne 0 ]; then
-        echo "ERROR: emacs tangle failed (exit $rc):" >&2
+        echo "ERROR: init failed (exit $rc):" >&2
         echo "$raw_output" >&2
         return "$rc"
     fi
-    tangled_list=$(echo "$raw_output" | grep -E '^/' || true)
-    # Post-process tangled files
-    for f in $tangled_list; do
-        [ -f "$f" ] || continue
-        # Strip trailing whitespace
-        sed -i 's/[[:space:]]*$//' "$f"
-        # Format Python files
-        case "$f" in
-            *.py) ruff format --quiet "$f" 2>/dev/null || true ;;
-        esac
-    done
 }
 
 if [ $# -eq 0 ]; then
-    # Bootstrap only: tangle the files that produce the shell scripts and main module
-    for f in "$SCRIPT_DIR"/TECHNICAL.org "$SCRIPT_DIR"/tests/testing.org; do
-        [ -f "$f" ] && tangle_file "$f"
+    for f in "$SCRIPT_DIR"/examples/*/readme.org; do
+        [ -f "$f" ] && init_file "$f"
     done
 else
     for f in "$@"; do
-        tangle_file "$(realpath "$f")"
+        test -f "$(realpath "$f")"
+        init_file "$(realpath "$f")"
     done
 fi
-# Tangle without dagger (bootstrap):1 ends here
+# Init examples:1 ends here

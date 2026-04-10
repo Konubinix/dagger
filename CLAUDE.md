@@ -1,10 +1,9 @@
 Use those scripts only:
-- ./run.sh
+- ./bootstrap.sh
+- ./init-examples.sh
 - ./tangle.sh
+- ./run.sh
 - ./test.sh
-
-Use ./tangle-nodagger.sh ONLY IF you need to resolve the chicken-and-egg
-problem.
 
 If the tooling does not work. Focus on fixing it. The tooling must be helpful
 and help me when something goes wrong. If the tooling does not help, improve the

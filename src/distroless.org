@@ -55,7 +55,7 @@ from dagger import dag, function
   dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
   #+end_src
 
-  #+RESULTS[a9a6588e057019cfe9443de81184e36e7b4f65ac]: distroless_python3
+  #+RESULTS[4191cefe54ae4696f1d14659068be16b3fe0371e]: distroless_python3
   : True
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_python3") :noweb yes :exports none :comments no :padline no
@@ -83,7 +83,7 @@ from dagger import dag, function
   test -s "$TMP/out/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[6ec9357537aa901a70c4b4b1c2550594993836c6]: distroless_static_export
+  #+RESULTS[329a1a314570595331f1d8a69e4af0a0703b28f6]: distroless_static_export
   : non-empty
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_static_export") :noweb yes :exports none :comments no :padline no

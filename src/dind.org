@@ -137,7 +137,7 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
   dagger call dind-with-docker --cmd="docker info --format '{{.OSType}}'" stdout
   #+end_src
 
-  #+RESULTS[bbd288c28614644ff3eed04080803697c230079c]: dind_docker_info
+  #+RESULTS[289f9477730f7e02d810eeab0ac9f5576bdf7c75]: dind_docker_info
   : linux
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "dind_docker_info") :noweb yes :exports none :comments no :padline no
