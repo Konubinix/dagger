@@ -8,7 +8,7 @@
               (assq-delete-all :cache org-babel-default-header-args))))
 
 (defun dagger-run-file (orgfile)
-  "Execute bash blocks in ORGFILE (fixtureyaml is handled by yamldagger.sh)."
+  "Execute bash blocks in ORGFILE."
   (find-file orgfile)
   (org-babel-map-src-blocks nil
     (when (string= lang "bash")

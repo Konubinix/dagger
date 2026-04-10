@@ -1,6 +1,0 @@
-userfunction: debian-uid-check
-project: examples/non_root_user
-func: debian-user
-chain:
-  - with-exec: ["id", sam]
-  - stdout

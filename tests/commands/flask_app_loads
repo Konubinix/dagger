@@ -1,0 +1,2 @@
+cd examples/flask_application
+dagger call flask-routes

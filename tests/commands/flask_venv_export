@@ -1,0 +1,3 @@
+TMP="${TMP:-$(mktemp -d)}"
+dagger call flask-venv export --path="$TMP/out" > /dev/null
+test -f "$TMP/out/bin/flask" && echo "bin/flask exists"

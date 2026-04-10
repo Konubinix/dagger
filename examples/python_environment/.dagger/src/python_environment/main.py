@@ -1,4 +1,4 @@
-# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/python_environment/main.py :noweb yes][No heading:5]]
+# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/python_environment/main.py :mkdirp yes :noweb yes][No heading:5]]
 from typing import Annotated
 
 import dagger
@@ -11,7 +11,7 @@ class PythonEnvironment:
     async def transform(
         self, src: Annotated[dagger.Directory, DefaultPath(".")]
     ) -> str:
-        """Generated from test spec."""
+        """Run the CSV transform in a clean Alpine container."""
         return await (
             dag.lib()
             .alpine_python_user_venv()
@@ -23,7 +23,7 @@ class PythonEnvironment:
 
     @function
     async def check_requests(self) -> str:
-        """Generated from test spec."""
+        """Verify requests is installed in the venv."""
         return await (
             dag.lib()
             .alpine_python_user_venv(pip_packages=["requests"])
@@ -37,7 +37,7 @@ class PythonEnvironment:
     async def transform_debian(
         self, src: Annotated[dagger.Directory, DefaultPath(".")]
     ) -> str:
-        """Generated from test spec."""
+        """Run the same transform on Debian for native library compatibility."""
         return await (
             dag.lib()
             .debian_python_user_venv()
@@ -49,7 +49,7 @@ class PythonEnvironment:
 
     @function
     async def pip_lock(self, src: Annotated[dagger.Directory, DefaultPath(".")]) -> str:
-        """Generated from test spec."""
+        """Lock dependencies with pip-compile."""
         return await (
             dag.lib()
             .pip_tools()

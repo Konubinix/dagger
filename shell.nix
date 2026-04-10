@@ -1,4 +1,4 @@
-# [[file:tests/testing.org::*Nix shell for host testing][Nix shell for host testing:2]]
+# [[file:tests/testing.org::*Nix shell for testing][Nix shell for testing:2]]
 { pkgs ? import <nixpkgs> {} }:
 
 pkgs.mkShell {
@@ -6,7 +6,6 @@ pkgs.mkShell {
     python313
     python313Packages.pytest
     python313Packages.pytest-asyncio
-    python313Packages.pyyaml
   ];
 }
-# Nix shell for host testing:2 ends here
+# Nix shell for testing:2 ends here

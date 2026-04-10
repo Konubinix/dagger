@@ -1,0 +1,2 @@
+cd examples/non_root_user
+dagger call uid-check

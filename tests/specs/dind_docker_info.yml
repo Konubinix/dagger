@@ -1,5 +1,0 @@
-func: dind-with-docker
-args:
-  cmd: "docker info --format '{{.OSType}}'"
-chain:
-  - stdout

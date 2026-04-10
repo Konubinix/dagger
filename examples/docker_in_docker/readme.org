@@ -22,7 +22,7 @@ Then I write my Dagger module. The =<<...>>= reference below is
 filled in by the function definition that follows — it shows the
 function code and its output:
 
-#+begin_src python :tangle .dagger/src/docker_in_docker/main.py :noweb yes
+#+begin_src python :tangle .dagger/src/docker_in_docker/main.py :mkdirp yes :noweb yes
 from typing import Annotated
 
 import dagger
@@ -41,42 +41,29 @@ class DockerInDocker:
   v2 setup, then runs my command. In production I'd run Kind here;
   for this example I mock the workflow:
 
-  #+NAME: dind_test_kind
-  #+begin_src fixtureyaml
-userfunction: test-kind
-project: examples/docker_in_docker
-func: dind-with-docker
-args:
-  cmd: "kind() { echo 'Creating cluster...'; echo \"Cluster 'test' created.\"; }; kubectl() { echo 'NAME            STATUS   ROLES           AGE'; echo 'test-node       Ready    control-plane   1m'; }; export -f kind kubectl; kind create cluster --wait 60s && kubectl get nodes"
-chain:
-  - stdout
+  #+NAME: test-kind
+  #+begin_src python
+  @function
+  async def test_kind(self) -> str:
+      """Run a mocked Kind workflow inside Docker-in-Docker."""
+      return await (
+          dag.lib().dind_with_docker(
+              cmd="kind() { echo 'Creating cluster...'; echo \"Cluster 'test' created.\"; };"
+              " kubectl() { echo 'NAME            STATUS   ROLES           AGE';"
+              " echo 'test-node       Ready    control-plane   1m'; };"
+              " export -f kind kubectl;"
+              " kind create cluster --wait 60s && kubectl get nodes",
+          )
+          .stdout()
+      )
   #+end_src
 
-#+RESULTS: dind_test_kind
-:results:
-#+NAME: test-kind
-#+begin_src python
-@function
-async def test_kind(self) -> str:
-    """Generated from test spec."""
-    return await (
-        dag.lib().dind_with_docker(cmd='kind() { echo \'Creating cluster...\'; echo "Cluster \'test\' created."; }; kubectl() { echo \'NAME            STATUS   ROLES           AGE\'; echo \'test-node       Ready    control-plane   1m\'; }; export -f kind kubectl; kind create cluster --wait 60s && kubectl get nodes')
-        .stdout()
-    )
-#+end_src
+  #+NAME: dind_test_kind
+  #+begin_src bash :tangle (daggerlib-tangle-test "dind_test_kind") :dir (locate-dominating-file default-directory ".git") :comments no :padline no
+  cd examples/docker_in_docker
+  dagger call test-kind
+  #+end_src
 
-#+NAME: dind_test_kind-run
-#+begin_src bash
-dagger call test-kind
-#+end_src
-
-#+RESULTS[6c210f9f12da3c49d8ab519707c2c3da94c6f999]: dind_test_kind-run
-: Creating cluster...
-: Cluster 'test' created.
-: NAME            STATUS   ROLES           AGE
-: test-node       Ready    control-plane   1m
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/dind_test_kind" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<dind_test_kind-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "dind_test_kind") :noweb yes :exports none :comments no :padline no
+  <<dind_test_kind()>>
+  #+END_SRC

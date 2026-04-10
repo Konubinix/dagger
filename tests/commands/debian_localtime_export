@@ -1,0 +1,3 @@
+TMP="${TMP:-$(mktemp -d)}"
+dagger call debian-localtime export --path="$TMP/out/localtime" > /dev/null
+test -s "$TMP/out/localtime" && echo "non-empty"

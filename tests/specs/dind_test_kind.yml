@@ -1,7 +1,0 @@
-userfunction: test-kind
-project: examples/docker_in_docker
-func: dind-with-docker
-args:
-  cmd: "kind() { echo 'Creating cluster...'; echo \"Cluster 'test' created.\"; }; kubectl() { echo 'NAME            STATUS   ROLES           AGE'; echo 'test-node       Ready    control-plane   1m'; }; export -f kind kubectl; kind create cluster --wait 60s && kubectl get nodes"
-chain:
-  - stdout

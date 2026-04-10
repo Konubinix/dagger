@@ -1,6 +1,0 @@
-userfunction: whoami-check
-project: examples/non_root_user
-func: alpine-user
-chain:
-  - with-exec: [whoami]
-  - stdout

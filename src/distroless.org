@@ -51,27 +51,16 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: distroless_python3
-  #+begin_src fixtureyaml
-func: distroless-python-3-debian
-chain:
-  - with-exec: [python3, -c, "import os; print(os.path.exists('/etc/localtime'))"]
-  - stdout
+  #+begin_src bash :tangle (daggerlib-tangle-test "distroless_python3") :comments no :padline no
+  dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
   #+end_src
 
-#+RESULTS: distroless_python3
-:results:
-#+NAME: distroless_python3-run
-#+begin_src bash :exports code :eval no-export
-dagger call distroless-python-3-debian with-exec --args="python3","-c","import os; print(os.path.exists('/etc/localtime'))" stdout
-#+end_src
+  #+RESULTS[a9a6588e057019cfe9443de81184e36e7b4f65ac]: distroless_python3
+  : True
 
-#+RESULTS[a9a6588e057019cfe9443de81184e36e7b4f65ac]: distroless_python3-run
-: True
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/distroless_python3" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<distroless_python3-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_python3") :noweb yes :exports none :comments no :padline no
+  <<distroless_python3()>>
+  #+END_SRC
 
 * Distroless static
 
@@ -88,26 +77,15 @@ dagger call distroless-python-3-debian with-exec --args="python3","-c","import o
   #+end_src
 
   #+NAME: distroless_static_export
-  #+begin_src fixtureyaml
-func: distroless-debian
-chain:
-  - file: /etc/localtime
-  - export: $TMP/out/localtime
-post: test -s "$TMP/out/localtime" && echo "non-empty"
+  #+begin_src bash :tangle (daggerlib-tangle-test "distroless_static_export") :comments no :padline no
+  TMP="${TMP:-$(mktemp -d)}"
+  dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out/localtime" > /dev/null
+  test -s "$TMP/out/localtime" && echo "non-empty"
   #+end_src
 
-#+RESULTS: distroless_static_export
-:results:
-#+NAME: distroless_static_export-run
-#+begin_src bash :exports code :eval no-export
-dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out/localtime" > /dev/null
-test -s "$TMP/out/localtime" && echo "non-empty"
-#+end_src
+  #+RESULTS[6ec9357537aa901a70c4b4b1c2550594993836c6]: distroless_static_export
+  : non-empty
 
-#+RESULTS[6ec9357537aa901a70c4b4b1c2550594993836c6]: distroless_static_export-run
-: non-empty
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/distroless_static_export" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<distroless_static_export-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_static_export") :noweb yes :exports none :comments no :padline no
+  <<distroless_static_export()>>
+  #+END_SRC

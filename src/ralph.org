@@ -364,53 +364,29 @@ from dagger import dag, function
   YAML.
 
   #+NAME: ralph_yml_valid
-  #+begin_src fixtureyaml
-func: debian
-args:
-  distro-packages: [python3-yaml]
-chain:
-  - with-file:
-      path: /tmp/ralph.yml
-      source: "${ROOT}/src/ralph.yml"
-  - with-exec: [python3, -c, "import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))"]
-  - stdout
+  #+begin_src bash :tangle (daggerlib-tangle-test "ralph_yml_valid") :comments no :padline no
+  dagger call debian --distro-packages=python3-yaml with-file --path=/tmp/ralph.yml --source=src/ralph.yml with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
   #+end_src
 
-#+RESULTS: ralph_yml_valid
-:results:
-#+NAME: ralph_yml_valid-run
-#+begin_src bash :exports code :eval no-export
-dagger call debian --distro-packages=python3-yaml with-file --path=/tmp/ralph.yml --source="${ROOT}/src/ralph.yml" with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
-#+end_src
+  #+RESULTS[d622db5d58703e1fecf1101746b83abd3286e07a]: ralph_yml_valid
 
-#+RESULTS[d622db5d58703e1fecf1101746b83abd3286e07a]: ralph_yml_valid-run
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/ralph_yml_valid" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<ralph_yml_valid-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "ralph_yml_valid") :noweb yes :exports none :comments no :padline no
+  <<ralph_yml_valid()>>
+  #+END_SRC
 
   The log filter is tested by piping a fixture of real ralph output
   through =ralph-log-filter= and comparing the result.
 
   #+NAME: log_filter_output
-  #+begin_src fixtureyaml
-shell: ralph-log-filter < "${ROOT}/tests/ralph_log_sample.txt" 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
+  #+begin_src bash :tangle (daggerlib-tangle-test "log_filter_output") :comments no :padline no
+  ralph-log-filter < tests/ralph_log_sample.txt 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
   #+end_src
 
-#+RESULTS: log_filter_output
-:results:
-#+NAME: log_filter_output-run
-#+begin_src bash :exports code :eval no-export
-ralph-log-filter < "${ROOT}/tests/ralph_log_sample.txt" 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
-#+end_src
+  #+RESULTS[70e8b89e03ad295a817bf07ed96f0208e5829e83]: log_filter_output
 
-#+RESULTS[70e8b89e03ad295a817bf07ed96f0208e5829e83]: log_filter_output-run
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/log_filter_output" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<log_filter_output-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "log_filter_output") :noweb yes :exports none :comments no :padline no
+  <<log_filter_output()>>
+  #+END_SRC
 
 
 * Log filter

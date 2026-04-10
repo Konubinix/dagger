@@ -1,0 +1,1 @@
+dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout

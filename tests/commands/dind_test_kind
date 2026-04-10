@@ -1,0 +1,2 @@
+cd examples/docker_in_docker
+dagger call test-kind

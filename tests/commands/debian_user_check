@@ -1,0 +1,1 @@
+dagger call debian-user with-exec --args="id","sam" stdout

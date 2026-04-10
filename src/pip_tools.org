@@ -40,24 +40,13 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: pip_tools_available
-  #+begin_src fixtureyaml
-func: pip-tools
-chain:
-  - with-exec: [which, pip-compile]
-  - stdout
+  #+begin_src bash :tangle (daggerlib-tangle-test "pip_tools_available") :comments no :padline no
+  dagger call pip-tools with-exec --args="which","pip-compile" stdout
   #+end_src
 
-#+RESULTS: pip_tools_available
-:results:
-#+NAME: pip_tools_available-run
-#+begin_src bash :exports code :eval no-export
-dagger call pip-tools with-exec --args="which","pip-compile" stdout
-#+end_src
+  #+RESULTS[af6191d7191d3e51d08da26a69719db0a9e01909]: pip_tools_available
+  : /home/sam/.local/bin/pip-compile
 
-#+RESULTS[af6191d7191d3e51d08da26a69719db0a9e01909]: pip_tools_available-run
-: /home/sam/.local/bin/pip-compile
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/pip_tools_available" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<pip_tools_available-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "pip_tools_available") :noweb yes :exports none :comments no :padline no
+  <<pip_tools_available()>>
+  #+END_SRC

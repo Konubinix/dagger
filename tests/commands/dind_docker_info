@@ -1,0 +1,1 @@
+dagger call dind-with-docker --cmd="docker info --format '{{.OSType}}'" stdout

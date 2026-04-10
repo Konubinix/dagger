@@ -1,4 +1,0 @@
-func: alpine-user
-chain:
-  - with-exec: [whoami]
-  - stdout

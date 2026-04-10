@@ -1,0 +1,1 @@
+dagger call debian --distro-packages=curl with-exec --args="which","curl" stdout

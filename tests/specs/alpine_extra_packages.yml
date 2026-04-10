@@ -1,8 +1,0 @@
-userfunction: curl-version
-project: examples/base_containers
-func: alpine
-args:
-  distro-packages: [curl]
-chain:
-  - with-exec: [curl, --version]
-  - stdout

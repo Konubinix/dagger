@@ -31,25 +31,15 @@ from dagger import function
   #+end_src
 
   #+NAME: flask_venv_export
-  #+begin_src fixtureyaml
-func: flask-venv
-chain:
-  - export: $TMP/out
-post: test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
+  #+begin_src bash :tangle (daggerlib-tangle-test "flask_venv_export") :comments no :padline no
+  TMP="${TMP:-$(mktemp -d)}"
+  dagger call flask-venv export --path="$TMP/out" > /dev/null
+  test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
   #+end_src
 
-#+RESULTS: flask_venv_export
-:results:
-#+NAME: flask_venv_export-run
-#+begin_src bash :exports code :eval no-export
-dagger call flask-venv export --path="$TMP/out" > /dev/null
-test -f "$TMP/out/bin/flask" && echo "bin/flask exists"
-#+end_src
+  #+RESULTS[6123a8c74ceb95e4bfac6cd2efcd09340ff2c912]: flask_venv_export
+  : bin/flask exists
 
-#+RESULTS[6123a8c74ceb95e4bfac6cd2efcd09340ff2c912]: flask_venv_export-run
-: bin/flask exists
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/flask_venv_export" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<flask_venv_export-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "flask_venv_export") :noweb yes :exports none :comments no :padline no
+  <<flask_venv_export()>>
+  #+END_SRC

@@ -3,7 +3,6 @@
 
 from dagger import function, object_type
 
-from .dev import Dev
 from .alpine import (
     alpine,
     alpine_python,
@@ -38,7 +37,6 @@ class Lib:
     pip_tools_python_version: str = "3.12"
     default_username: str = "sam"
     timezone: str = "Europe/Paris"
-    dev_debian_image: str = "debian:bookworm-slim"
     dind_ubuntu_image: str = "ubuntu:24.04"
 
     # Alpine
@@ -88,11 +86,6 @@ class Lib:
 
     # Ralph
     ralph = ralph
-
-    @function
-    def dev(self) -> Dev:
-        """Development tooling: tangle, test, and run inside containers."""
-        return Dev(debian_image=self.dev_debian_image)
 
 
 # Module entry point:2 ends here

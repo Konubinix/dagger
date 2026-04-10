@@ -42,7 +42,7 @@ print(f"service started (timezone: {tz})")
 Then I write my Dagger module. The =<<run-distroless>>= reference is
 defined further below:
 
-#+begin_src python :tangle .dagger/src/production_images/main.py :noweb yes
+#+begin_src python :tangle .dagger/src/production_images/main.py :mkdirp yes :noweb yes
 from typing import Annotated
 
 import dagger
@@ -63,34 +63,15 @@ class ProductionImages:
   the extraction produces the expected files:
 
   #+NAME: tz_artifacts
-  #+begin_src fixtureyaml
-func: alpine-tz
-chain:
-  - export: $TMP/out
-post: ls "$TMP/out" | sort
+  #+begin_src bash :tangle (daggerlib-tangle-test "tz_artifacts") :dir (locate-dominating-file default-directory ".git") :comments no :padline no
+  TMP="${TMP:-$(mktemp -d)}"
+  dagger call alpine-tz export --path="$TMP/out" > /dev/null
+  ls "$TMP/out" | sort
   #+end_src
 
-#+RESULTS: tz_artifacts
-:results:
-#+NAME: tz_artifacts-run
-#+begin_src bash :exports code :eval no-export
-dagger call alpine-tz export --path="$TMP/out" > /dev/null
-ls "$TMP/out" | sort
-#+end_src
-
-#+RESULTS[501fd8e2b72c5b4334e89b88212de0d39472e2e0]: tz_artifacts-run
-: bin
-: include
-: lib
-: lib64
-: localtime
-: pyvenv.cfg
-: timezone
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/tz_artifacts" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<tz_artifacts-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "tz_artifacts") :noweb yes :exports none :comments no :padline no
+  <<tz_artifacts()>>
+  #+END_SRC
 
 * Running the service in distroless
 
@@ -98,46 +79,29 @@ ls "$TMP/out" | sort
   only the Python interpreter — no pip, no shell, no debugging tools.
   I inject my service and run it:
 
-  #+NAME: distroless_service
-  #+begin_src fixtureyaml :eval no-export
-userfunction: run-distroless
-project: examples/production_images
-func: distroless-python-3-debian
-chain:
-  - with-file:
-      path: /app/service.py
-      source: "${ROOT}/examples/production_images/service.py"
-  - with-exec: [python3, /app/service.py]
-  - stdout
+  #+NAME: run-distroless
+  #+begin_src python
+  @function
+  async def run_distroless(self, src: Annotated[dagger.Directory, DefaultPath(".")]) -> str:
+      """Run a Python service in the distroless image."""
+      return await (
+          dag.lib().distroless_python3_debian()
+          .with_file('/app/service.py', src.file('service.py'))
+          .with_exec(['python3', '/app/service.py'])
+          .stdout()
+      )
   #+end_src
 
-#+RESULTS: distroless_service
-:results:
-#+NAME: run-distroless
-#+begin_src python
-@function
-async def run_distroless(self, src: Annotated[dagger.Directory, DefaultPath(".")]) -> str:
-    """Generated from test spec."""
-    return await (
-        dag.lib().distroless_python3_debian()
-        .with_file('/app/service.py', src.file('service.py'))
-        .with_exec(['python3', '/app/service.py'])
-        .stdout()
-    )
-#+end_src
+  #+NAME: distroless_service
+  #+begin_src bash :tangle (daggerlib-tangle-test "distroless_service") :dir (locate-dominating-file default-directory ".git") :comments no :padline no
+  cd examples/production_images
+  dagger call run-distroless
+  #+end_src
 
-#+NAME: distroless_service-run
-#+begin_src bash
-dagger call run-distroless
-#+end_src
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_service") :noweb yes :exports none :comments no :padline no
+  <<distroless_service()>>
+  #+END_SRC
 
-#+RESULTS[66de26b3c1fcc3cc120c2b55490f67d9dc4c8d65]: distroless_service-run
-: service started (timezone: CEST)
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/distroless_service" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<distroless_service-run()>>
-#+END_SRC
-:end:
 * The static variant for compiled services
 
   A teammate rewrote one of our services in Go. For compiled binaries,
@@ -146,25 +110,12 @@ dagger call run-distroless
   file is present so timestamps will be correct:
 
   #+NAME: distroless_static
-  #+begin_src fixtureyaml
-func: distroless-debian
-chain:
-  - file: /etc/localtime
-  - export: $TMP/out2/localtime
-post: test -s "$TMP/out2/localtime" && echo "non-empty"
+  #+begin_src bash :tangle (daggerlib-tangle-test "distroless_static") :dir (locate-dominating-file default-directory ".git") :comments no :padline no
+  TMP="${TMP:-$(mktemp -d)}"
+  dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out2/localtime" > /dev/null
+  test -s "$TMP/out2/localtime" && echo "non-empty"
   #+end_src
 
-#+RESULTS: distroless_static
-:results:
-#+NAME: distroless_static-run
-#+begin_src bash :exports code :eval no-export
-dagger call distroless-debian file --path="/etc/localtime" export --path="$TMP/out2/localtime" > /dev/null
-test -s "$TMP/out2/localtime" && echo "non-empty"
-#+end_src
-
-#+RESULTS[22bf43eaa61b484a5dd48c990ec5d3aa935b11a3]: distroless_static-run
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/distroless_static" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<distroless_static-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_static") :noweb yes :exports none :comments no :padline no
+  <<distroless_static()>>
+  #+END_SRC

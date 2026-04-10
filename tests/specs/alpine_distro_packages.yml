@@ -1,6 +1,0 @@
-func: alpine
-args:
-  distro-packages: [curl]
-chain:
-  - with-exec: [which, curl]
-  - stdout

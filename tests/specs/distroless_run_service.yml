@@ -1,9 +1,0 @@
-userfunction: run-service
-project: examples/base_containers
-func: distroless-python-3-debian
-chain:
-  - with-file:
-      path: /app/service.py
-      source: "${ROOT}/examples/base_containers/service.py"
-  - with-exec: [python3, /app/service.py]
-  - stdout

@@ -1,0 +1,1 @@
+dagger call pip-tools with-exec --args="which","pip-compile" stdout

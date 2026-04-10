@@ -133,47 +133,25 @@ from dagger import function
   We test user creation via the [[file:alpine.org::*A non-root user for safer workflows][alpine-user]] target (which calls [[*The full combo: create + switch][use_user]]):
 
   #+NAME: use_user_whoami
-  #+begin_src fixtureyaml
-func: alpine-user
-chain:
-  - with-exec: [whoami]
-  - stdout
+  #+begin_src bash :tangle (daggerlib-tangle-test "use_user_whoami") :comments no :padline no
+  dagger call alpine-user with-exec --args="whoami" stdout
   #+end_src
 
-#+RESULTS: use_user_whoami
-:results:
-#+NAME: use_user_whoami-run
-#+begin_src bash :exports code :eval no-export
-dagger call alpine-user with-exec --args="whoami" stdout
-#+end_src
+  #+RESULTS[4ecb3c055f5fd5a1e054835510f2459f46c86908]: use_user_whoami
+  : sam
 
-#+RESULTS[4ecb3c055f5fd5a1e054835510f2459f46c86908]: use_user_whoami-run
-: sam
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/use_user_whoami" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<use_user_whoami-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "use_user_whoami") :noweb yes :exports none :comments no :padline no
+  <<use_user_whoami()>>
+  #+END_SRC
 
   #+NAME: use_user_workdir
-  #+begin_src fixtureyaml
-func: alpine-user
-chain:
-  - with-exec: [pwd]
-  - stdout
+  #+begin_src bash :tangle (daggerlib-tangle-test "use_user_workdir") :comments no :padline no
+  dagger call alpine-user with-exec --args="pwd" stdout
   #+end_src
 
-#+RESULTS: use_user_workdir
-:results:
-#+NAME: use_user_workdir-run
-#+begin_src bash :exports code :eval no-export
-dagger call alpine-user with-exec --args="pwd" stdout
-#+end_src
+  #+RESULTS[0bc83024e1a49608702456b976d60875e93bc706]: use_user_workdir
+  : /home/sam
 
-#+RESULTS[0bc83024e1a49608702456b976d60875e93bc706]: use_user_workdir-run
-: /home/sam
-
-#+BEGIN_SRC org :tangle (expand-file-name "tests/expected/use_user_workdir" (locate-dominating-file default-directory ".git")) :noweb yes :exports none :comments no :padline no
-<<use_user_workdir-run()>>
-#+END_SRC
-:end:
+  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "use_user_workdir") :noweb yes :exports none :comments no :padline no
+  <<use_user_workdir()>>
+  #+END_SRC

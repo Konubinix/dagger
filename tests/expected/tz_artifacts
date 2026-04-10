@@ -1,7 +1,2 @@
-bin
-include
-lib
-lib64
 localtime
-pyvenv.cfg
 timezone

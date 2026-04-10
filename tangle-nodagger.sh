@@ -2,7 +2,7 @@
 # [[file:TECHNICAL.org::*Tangle without dagger (bootstrap)][Tangle without dagger (bootstrap):1]]
 # Bootstrap tangle using host tools (emacs, git, ruff).
 # Usage:
-#   ./tangle-nodagger.sh                 # tangle only mode 2 bootstrap files
+#   ./tangle-nodagger.sh                 # tangle only bootstrap files
 #   ./tangle-nodagger.sh src/foo.org     # tangle a specific file
 set -euo pipefail
 
@@ -68,8 +68,8 @@ tangle_file() {
 }
 
 if [ $# -eq 0 ]; then
-    # Bootstrap only: tangle the files that produce mode 2 infrastructure
-    for f in "$SCRIPT_DIR"/TECHNICAL.org "$SCRIPT_DIR"/src/dev.org "$SCRIPT_DIR"/tests/testing.org; do
+    # Bootstrap only: tangle the files that produce the shell scripts and main module
+    for f in "$SCRIPT_DIR"/TECHNICAL.org "$SCRIPT_DIR"/tests/testing.org; do
         [ -f "$f" ] && tangle_file "$f"
     done
 else

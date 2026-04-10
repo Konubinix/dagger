@@ -1,4 +1,0 @@
-func: debian
-chain:
-  - with-exec: [sh, -c, "readlink -f /etc/localtime"]
-  - stdout

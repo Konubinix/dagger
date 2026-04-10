@@ -1,4 +1,4 @@
-# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/flask_application/main.py :noweb yes][No heading:4]]
+# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/flask_application/main.py :mkdirp yes :noweb yes][No heading:4]]
 from typing import Annotated
 
 import dagger
@@ -11,7 +11,7 @@ class FlaskApplication:
     async def flask_routes(
         self, src: Annotated[dagger.Directory, DefaultPath(".")]
     ) -> str:
-        """Generated from test spec."""
+        """Verify the Flask app loads and exposes the expected routes."""
         return await (
             dag.lib()
             .alpine_python_user_venv(pip_packages=["flask"])
@@ -30,7 +30,7 @@ class FlaskApplication:
     async def gunicorn_check(
         self, src: Annotated[dagger.Directory, DefaultPath(".")]
     ) -> str:
-        """Generated from test spec."""
+        """Verify gunicorn can find the Flask app."""
         return await (
             dag.lib()
             .alpine_python_user_venv(pip_packages=["flask", "gunicorn"])

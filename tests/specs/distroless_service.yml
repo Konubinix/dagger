@@ -1,9 +1,0 @@
-userfunction: run-distroless
-project: examples/production_images
-func: distroless-python-3-debian
-chain:
-  - with-file:
-      path: /app/service.py
-      source: "${ROOT}/examples/production_images/service.py"
-  - with-exec: [python3, /app/service.py]
-  - stdout

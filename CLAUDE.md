@@ -1,6 +1,5 @@
 Use those scripts only:
 - ./run.sh
-- ./yamldagger.sh
 - ./tangle.sh
 - ./test.sh
 
