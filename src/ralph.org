@@ -368,7 +368,7 @@ from dagger import dag, function
   dagger call debian --distro-packages=python3-yaml with-file --path=/tmp/ralph.yml --source=src/ralph.yml with-exec --args="python3","-c","import yaml; d=yaml.safe_load(open('/tmp/ralph.yml')); print(d['event_loop']['starting_event']); print(len(d['hats']))" stdout
   #+end_src
 
-  #+RESULTS[69a96f6ef58e5fcbb1011c184ded065a9ebbf400]: ralph_yml_valid
+  #+RESULTS[8ba6697c42aa823533f19fe3d71e66716801cf3d]: ralph_yml_valid
   : work.start
   : 2
 
@@ -384,7 +384,7 @@ from dagger import dag, function
   ralph-log-filter < tests/ralph_log_sample.txt 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g'
   #+end_src
 
-  #+RESULTS[c138352f4e19bcf4c49b22d4dc9cb07b57ec07a6]: log_filter_output
+  #+RESULTS[d609e31b3ca20fffc79979e01fd92c1bc2301c44]: log_filter_output
   : [ralph] starting ralph...
   : [ralph] ralph started (PID 16)
   : [file] Read: /tmp/ralph-workdir/ralph.yml

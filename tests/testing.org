@@ -54,7 +54,7 @@ each one, and compares stdout to the expected output.
   #+begin_src bash :tangle ../test-dind.sh :shebang "#!/usr/bin/env bash"
   set -eu
   cd "$(dirname "$0")"
-  exec dagger --progress plain call dind-run-tests stdout
+  exec dagger ${DAGGER_EXTRA_ARGS:-} call dind-run-tests stdout
   #+end_src
 
 * Test fixtures

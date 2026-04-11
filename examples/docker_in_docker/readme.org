@@ -81,7 +81,7 @@ class DockerInDocker:
   dagger call test-kind
   #+end_src
 
-  #+RESULTS[d60b5fae7561854be737ef9b26e60366e7e7dacd]: dind_test_kind
+  #+RESULTS[cecd9659ea5ce4e8de1759c1630756e48db97c88]: dind_test_kind
   : Creating cluster...
   : Cluster 'test' created.
   : NAME            STATUS   ROLES           AGE

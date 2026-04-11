@@ -1,8 +1,11 @@
 Use those scripts only:
 - ./bootstrap.sh
-- ./init-examples.sh
-- ./tangle.sh
-- ./run.sh
+- ./init-examples.sh (runs init-examples-host.sh in a dagger container)
+- ./init-examples-host.sh (host emacs, called by init-examples.sh)
+- ./tangle.sh (runs tangle-host.sh in a dagger container)
+- ./tangle-host.sh (host emacs, called by tangle.sh)
+- ./run.sh (runs run-host.sh in a dagger container)
+- ./run-host.sh (host emacs, called by run.sh)
 - ./test.sh
 - ./test-dind.sh
 

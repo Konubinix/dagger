@@ -69,9 +69,7 @@ class ProductionImages:
   ls "$TMP/out" | sort
   #+end_src
 
-  #+RESULTS[a5017cb1acdd53279cece8229cd62f921c503b91]: tz_artifacts
-  : localtime
-  : timezone
+  #+RESULTS[1598e902132fe3d2c13b4165918391aee28c046d]: tz_artifacts
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "tz_artifacts") :noweb yes :exports none :comments no :padline no
   <<tz_artifacts()>>
@@ -101,7 +99,7 @@ class ProductionImages:
   dagger call run-distroless
   #+end_src
 
-  #+RESULTS[49ea475491aa2230b7dc97912cbbbdf0e37e7e14]: distroless_service
+  #+RESULTS[6929522cc2caf4c36360322664506fd862563129]: distroless_service
   : service started (timezone: CEST)
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_service") :noweb yes :exports none :comments no :padline no
@@ -122,8 +120,7 @@ class ProductionImages:
   test -s "$TMP/out2/localtime" && echo "non-empty"
   #+end_src
 
-  #+RESULTS[06eb9d6f97a655536a63d6c7473305e241804e6b]: distroless_static
-  : non-empty
+  #+RESULTS[bb6065553d5886bbe4d25d0b02df49de6029d847]: distroless_static
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "distroless_static") :noweb yes :exports none :comments no :padline no
   <<distroless_static()>>

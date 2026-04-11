@@ -87,7 +87,7 @@ class FlaskApplication:
   dagger call flask-routes
   #+end_src
 
-  #+RESULTS[5c7143ac0879d1b8a88299acfccaab0fc6fe41ab]: flask_app_loads
+  #+RESULTS[3e8358d16431a2097df31d37f085b6c3641352c3]: flask_app_loads
   : ['/health', '/webhook']
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "flask_app_loads") :noweb yes :exports none :comments no :padline no
@@ -119,7 +119,7 @@ class FlaskApplication:
   dagger call gunicorn-check
   #+end_src
 
-  #+RESULTS[45668d47fea6e6b97c1947274eaa92d0b3820af6]: flask_gunicorn_check
+  #+RESULTS[3e8fd8925d7e1c7470daa0144453d6b3b050855b]: flask_gunicorn_check
   : gunicorn config ok
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "flask_gunicorn_check") :noweb yes :exports none :comments no :padline no

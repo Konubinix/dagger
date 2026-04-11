@@ -49,7 +49,16 @@ programming setup, tangling pipeline, and editor configuration. See
       debian_user,
   )
   from .python import python_user_venv, python_venv
-  from .dind import dind_container, dind_run_tests, dind_with_docker
+  from .dind import (
+      dind_container,
+      dind_emacs_container,
+      dind_init_examples,
+      dind_run_org,
+      dind_run_tests,
+      dind_tangle,
+      dind_with_docker,
+      emacs_container,
+  )
   from .distroless import distroless_debian, distroless_python3_debian, distroless_set_tz
   from .flask_venv import flask_venv
   from .pip_tools import pip_tools
@@ -108,10 +117,17 @@ programming setup, tangling pipeline, and editor configuration. See
       # Flask
       flask_venv = flask_venv
 
+      # Emacs container (lightweight, no Docker)
+      emacs_container = emacs_container
+
       # DinD
       dind_container = dind_container
+      dind_emacs_container = dind_emacs_container
       dind_with_docker = dind_with_docker
       dind_run_tests = dind_run_tests
+      dind_run_org = dind_run_org
+      dind_tangle = dind_tangle
+      dind_init_examples = dind_init_examples
 
       # Ralph
       ralph = ralph
@@ -352,17 +368,18 @@ programming setup, tangling pipeline, and editor configuration. See
   ;;; tangle.el ends here
   #+end_src
 
-* Tangle script
+* Tangle script (host)
   :PROPERTIES:
   :ID:       a7c3e1f4-5b2d-4d8e-9f6a-2c1b3e4d5f6a
   :END:
 
-  The daily-use tangle script tangles all org files using host emacs.
+  The host tangle script tangles all org files using host emacs.
   It reuses the same =tangle_file= function and =ensure-org= block
   as the bootstrap script, but tangles everything rather than just
-  the bootstrap subset.
+  the bootstrap subset.  The daily-use =tangle.sh= wrapper runs this
+  inside a container for reproducibility.
 
-  #+begin_src bash :tangle tangle.sh :shebang "#!/usr/bin/env bash" :noweb yes
+  #+begin_src bash :tangle tangle-host.sh :shebang "#!/usr/bin/env bash" :noweb yes
   # Tangle all org files.
   # Usage:
   #   ./tangle.sh                          # tangle all org files
@@ -488,16 +505,17 @@ Stops at first failure."
     ;;; run.el ends here
   #+end_src
 
-* Run script
+* Run script (host)
   :PROPERTIES:
   :ID:       a7f2c1d8-3e5b-4a9f-b6c2-8d4e1f0a5b3c
   :END:
 
-  Executes org-babel blocks using emacs in batch mode and saves the
-  results. Populates the =#+RESULTS:= blocks that tangling writes
-  to =tests/expected/= via noweb references.
+  Executes org-babel blocks using host emacs in batch mode and saves
+  the results. Populates the =#+RESULTS:= blocks that tangling writes
+  to =tests/expected/= via noweb references.  The daily-use =run.sh=
+  wrapper runs this inside a container for reproducibility.
 
-  #+begin_src bash :tangle run.sh :shebang "#!/usr/bin/env bash" :noweb yes
+  #+begin_src bash :tangle run-host.sh :shebang "#!/usr/bin/env bash" :noweb yes
   # Execute org-babel blocks and save results.
   # Usage:
   #   ./run.sh                              # run all src and doc org files
@@ -524,13 +542,12 @@ Stops at first failure."
       if [ -n "$NO_CACHE" ]; then
           no_cache_arg="t"
       fi
-      raw_output=$(emacs --batch --no-init-file \
+      emacs --batch --no-init-file \
           -l "$SCRIPT_DIR/tangle.el" \
           -l "$SCRIPT_DIR/run.el" \
-          --eval "(dagger-run-file \"$orgfile\" $no_cache_arg)" 2>&1) || rc=$?
+          --eval "(dagger-run-file \"$orgfile\" $no_cache_arg)" 2>&1 || rc=$?
       if [ "$rc" -ne 0 ]; then
-          echo "ERROR: emacs run failed (exit $rc):" >&2
-          echo "$raw_output" >&2
+          echo "ERROR: emacs run failed (exit $rc)" >&2
           return "$rc"
       fi
   }
@@ -547,16 +564,17 @@ Stops at first failure."
   fi
   #+end_src
 
-* Init examples
+* Init examples (host)
 
   Runs =:init yes= bash blocks in example readme.org files to
   set up their dagger modules (=dagger init=, =dagger install=,
-  local checkout rewrite).
+  local checkout rewrite).  The daily-use =init-examples.sh= wrapper
+  runs this inside a container for reproducibility.
 
   With =--from-scratch=, first removes everything except
   =readme.org= in each example directory.
 
-  #+begin_src bash :tangle init-examples.sh :shebang "#!/usr/bin/env bash" :noweb yes
+  #+begin_src bash :tangle init-examples-host.sh :shebang "#!/usr/bin/env bash" :noweb yes
   # Initialize example dagger modules.
   # Usage:
   #   ./init-examples.sh                       # init all examples
@@ -614,3 +632,42 @@ Stops at first failure."
       done
   fi
   #+end_src
+
+* Containerized wrappers
+
+  The daily-use scripts run their host counterparts inside a Dagger
+  container for reproducible emacs output.  Each wrapper calls the
+  corresponding =dind-*= function and exports the result back to the
+  working tree with =-o .=.
+
+** run.sh
+
+   #+begin_src bash :tangle run.sh :shebang "#!/usr/bin/env bash"
+   set -eu
+   cd "$(dirname "$0")"
+   args=""
+   if [ "${1:-}" = "--no-cache" ]; then
+       args="--no-cache"
+       shift
+   fi
+   for f in "$@"; do
+       args="$args --files=$f"
+   done
+   exec dagger ${DAGGER_EXTRA_ARGS:-} call dind-run-org $args -o .
+   #+end_src
+
+** tangle.sh
+
+   #+begin_src bash :tangle tangle.sh :shebang "#!/usr/bin/env bash"
+   set -eu
+   cd "$(dirname "$0")"
+   exec dagger ${DAGGER_EXTRA_ARGS:-} call dind-tangle -o .
+   #+end_src
+
+** init-examples.sh
+
+   #+begin_src bash :tangle init-examples.sh :shebang "#!/usr/bin/env bash"
+   set -eu
+   cd "$(dirname "$0")"
+   exec dagger ${DAGGER_EXTRA_ARGS:-} call dind-init-examples -o .
+   #+end_src
