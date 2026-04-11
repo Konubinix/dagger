@@ -46,6 +46,17 @@ each one, and compares stdout to the expected output.
   exec pytest tests/test_sdk.py -v
   #+end_src
 
+* Docker-in-Docker test entry point
+
+  Dogfooding: run the test suite inside a DinD container using the
+  project's own =dind-run-tests= function.
+
+  #+begin_src bash :tangle ../test-dind.sh :shebang "#!/usr/bin/env bash"
+  set -eu
+  cd "$(dirname "$0")"
+  exec dagger --progress plain call dind-run-tests stdout
+  #+end_src
+
 * Test fixtures
   :PROPERTIES:
   :ID:       b3c4d5e6-f7a8-9012-bcde-f01234567890

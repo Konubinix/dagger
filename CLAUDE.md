@@ -4,6 +4,7 @@ Use those scripts only:
 - ./tangle.sh
 - ./run.sh
 - ./test.sh
+- ./test-dind.sh
 
 If the tooling does not work. Focus on fixing it. The tooling must be helpful
 and help me when something goes wrong. If the tooling does not help, improve the

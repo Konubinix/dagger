@@ -10,6 +10,23 @@ Some CI pipelines and integration tests need to build or run Docker
 images. I need a way to run Docker inside a Dagger container (DinD),
 handling cgroup setup, tmpfs mounts, and dockerd lifecycle.
 
+When running Docker-in-Docker inside a Dagger container, there is a
+DNS subnet collision to handle. The outer Dagger engine places the
+container on a =10.87.0.0/16= network with a DNS server at
+=10.87.0.1=.  When a nested Dagger engine starts inside the DinD
+container, it creates its own =dagger0= bridge in the same
+=10.87.0.0/16= range.  That route captures all traffic to
+=10.87.0.1=, making the DNS server unreachable from containers managed
+by the inner engine.
+
+The fix: before starting =dockerd=, save the current DNS server and
+tell Docker (via =daemon.json=) to hand out =172.17.0.1= (the Docker
+bridge gateway) as the DNS server for containers.  After =dockerd=
+creates the bridge, add iptables DNAT rules that forward DNS queries
+arriving at =172.17.0.1:53= to the real DNS server.  Containers
+managed by the inner Docker — including a nested Dagger engine — can
+always reach the bridge gateway, so DNS works transparently.
+
 #+begin_src python
 import dagger
 from dagger import dag, function
@@ -23,11 +40,21 @@ _CGROUP_SETUP = (
     " > /sys/fs/cgroup/cgroup.subtree_control 2>/dev/null || true\n"
 )
 
+_DNS_SETUP = (
+    "DNS_SERVER=$(awk '/^nameserver/{print $2; exit}' /etc/resolv.conf)\n"
+    "mkdir -p /etc/docker\n"
+    'echo \'{"dns": ["172.17.0.1"]}\' > /etc/docker/daemon.json\n'
+)
+
 _DOCKERD_START = (
     "mkdir -p /var/lib/docker\n"
     "mount -t tmpfs tmpfs /var/lib/docker\n"
     "dockerd &>/var/log/dockerd.log &\n"
     "for i in $(seq 1 30); do docker info &>/dev/null && break; sleep 0.2; done\n"
+    "iptables -t nat -A PREROUTING -p udp -d 172.17.0.1 --dport 53"
+    " -j DNAT --to-destination $DNS_SERVER:53\n"
+    "iptables -t nat -A PREROUTING -p tcp -d 172.17.0.1 --dport 53"
+    " -j DNAT --to-destination $DNS_SERVER:53\n"
 )
 #+end_src
 
@@ -125,11 +152,60 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
       """
       if ctr is None:
           ctr = self.dind_container()
-      shell_cmd = _CGROUP_SETUP + _DOCKERD_START + cmd
+      shell_cmd = _DNS_SETUP + _CGROUP_SETUP + _DOCKERD_START + cmd
       return ctr.with_exec(
           ["bash", "-c", shell_cmd],
           insecure_root_capabilities=True,
       )
+  #+end_src
+
+* Running the test suite inside DinD
+
+  Dogfooding: build a container that has everything needed to run the
+  project tests (Python, pytest, Dagger CLI) on top of the DinD base,
+  then execute =./test.sh= with dockerd available.
+
+  #+begin_src python
+  @function
+  def dind_run_tests(
+      self,
+      src: dagger.Directory | None = None,
+  ) -> dagger.Container:
+      """Run the project test suite inside Docker-in-Docker (dogfooding).
+
+      Builds a test-ready container from the DinD base, installs Python,
+      pytest, and the Dagger CLI, mounts the project source, and runs
+      ./test.sh with dockerd available.
+      """
+      if src is None:
+          src = dag.current_module().source()
+
+      ctr = self.dind_container(src=src)
+      ctr = (
+          ctr
+          .with_exec([
+              "apt-get", "install", "--yes",
+              "python3", "python3-pip", "python3-venv",
+          ])
+          .with_exec([
+              "pip3", "install", "--break-system-packages",
+              "pytest", "pytest-asyncio",
+          ])
+          .with_exec([
+              "bash", "-c",
+              "curl -fsSL https://dl.dagger.io/dagger/install.sh"
+              " | BIN_DIR=/usr/local/bin sh",
+          ])
+          .with_directory("/work", src)
+          .with_workdir("/work")
+      )
+      cmd = (
+          "echo '=== dockerd ready ===' && "
+          "docker info --format 'Docker: {{.ServerVersion}}' && "
+          "echo '=== running test suite ===' && "
+          "./test.sh"
+      )
+      return self.dind_with_docker(cmd=cmd, ctr=ctr)
   #+end_src
 
   #+NAME: dind_docker_info

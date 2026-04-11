@@ -21,7 +21,7 @@ from .debian import (
     debian_user,
 )
 from .python import python_user_venv, python_venv
-from .dind import dind_container, dind_with_docker
+from .dind import dind_container, dind_run_tests, dind_with_docker
 from .distroless import distroless_debian, distroless_python3_debian, distroless_set_tz
 from .flask_venv import flask_venv
 from .pip_tools import pip_tools
@@ -83,6 +83,7 @@ class Lib:
     # DinD
     dind_container = dind_container
     dind_with_docker = dind_with_docker
+    dind_run_tests = dind_run_tests
 
     # Ralph
     ralph = ralph

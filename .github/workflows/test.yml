@@ -11,9 +11,9 @@ jobs:
       - name: Install host tools
         run: |
           sudo apt-get update && sudo apt-get install -y --no-install-recommends emacs-nox
-          pip install ruff pytest pyyaml
+          pip install ruff
           curl -fsSL https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=0.20.3 BIN_DIR=/usr/local/bin sh
       - run: ./run.sh
       - run: ./tangle.sh
       - run: ./check-clean.sh
-      - run: ./test.sh
+      - run: ./test-dind.sh

@@ -39,7 +39,7 @@
                 [
                     "exec",
                     "--in-project",
-                    "./test.sh"
+                    "./test-dind.sh"
                 ]
             ],
             "documentation": null
