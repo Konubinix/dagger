@@ -2,7 +2,7 @@
 set -eu
 if ! git diff --quiet || ! git diff --cached --quiet; then
     echo "Working tree is dirty after regeneration. Forgot to commit?"
-    git diff --stat
+    PAGER=cat git diff --stat
     exit 1
 fi
 # Also check for untracked files that should be committed
