@@ -1,4 +1,4 @@
-# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/non_root_user/main.py :mkdirp yes :noweb yes][No heading:3]]
+# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/non_root_user/main.py :noweb yes][No heading:3]]
 import dagger
 from dagger import dag, function, object_type
 

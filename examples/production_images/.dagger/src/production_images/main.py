@@ -1,4 +1,4 @@
-# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/production_images/main.py :mkdirp yes :noweb yes][No heading:4]]
+# [[file:../../../readme.org::+begin_src python :tangle .dagger/src/production_images/main.py :noweb yes][No heading:4]]
 from typing import Annotated
 
 import dagger

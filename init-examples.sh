@@ -4,15 +4,26 @@
 # Usage:
 #   ./init-examples.sh                       # init all examples
 #   ./init-examples.sh --no-cache            # ignore cached results
+#   ./init-examples.sh --from-scratch        # clean + init (implies --no-cache)
 #   ./init-examples.sh examples/foo/readme.org  # init a specific example
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 NO_CACHE=
-if [ "${1:-}" = "--no-cache" ]; then
-    NO_CACHE=1
-    shift
+FROM_SCRATCH=
+while [ "${1:-}" = "--no-cache" ] || [ "${1:-}" = "--from-scratch" ]; do
+    case "$1" in
+        --no-cache) NO_CACHE=1; shift ;;
+        --from-scratch) FROM_SCRATCH=1; NO_CACHE=1; shift ;;
+    esac
+done
+
+if [ -n "$FROM_SCRATCH" ]; then
+    for d in "$SCRIPT_DIR"/examples/*/; do
+        find "$d" -mindepth 1 -not -name readme.org -delete 2>/dev/null || true
+        find "$d" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+    done
 fi
 
 # Ensure pinned org-mode is cloned and up-to-date
@@ -47,14 +58,14 @@ fi
 init_file() {
     local orgfile="$1"
     echo "Init $orgfile..."
-    local raw_output rc=0 no_cache_eval=""
+    local raw_output rc=0 no_cache_arg=""
     if [ -n "$NO_CACHE" ]; then
-        no_cache_eval="(dagger-run-ignore-cache)"
+        no_cache_arg="t"
     fi
     raw_output=$(emacs --batch --no-init-file \
         -l "$SCRIPT_DIR/tangle.el" \
         -l "$SCRIPT_DIR/run.el" \
-        --eval "(progn $no_cache_eval (dagger-init-file \"$orgfile\"))" 2>&1) || rc=$?
+        --eval "(dagger-init-file \"$orgfile\" $no_cache_arg)" 2>&1) || rc=$?
     if [ "$rc" -ne 0 ]; then
         echo "ERROR: init failed (exit $rc):" >&2
         echo "$raw_output" >&2

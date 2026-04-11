@@ -432,25 +432,44 @@ programming setup, tangling pipeline, and editor configuration. See
   #+begin_src emacs-lisp :tangle run.el
     ;;; run.el --- Batch-execute org-babel bash blocks -*- lexical-binding: t; -*-
 
-    (defun dagger-run-ignore-cache ()
-      "Override :cache to \"no\" so all blocks re-execute."
-      (setq org-babel-default-header-args
-            (cons '(:cache . "no")
-                  (assq-delete-all :cache org-babel-default-header-args))))
-
-    (defun dagger-run-file (orgfile)
-      "Execute bash blocks in ORGFILE."
+    (defun dagger-run-file (orgfile &optional no-cache)
+      "Execute bash blocks in ORGFILE.
+When NO-CACHE is non-nil, ignore cached results."
       (find-file orgfile)
       (org-babel-map-src-blocks nil
         (when (string= lang "bash")
           (message "%s Executing %s %s..." (format-time-string "%H:%M:%S") lang
                    (or (org-element-property :name (org-element-at-point)) "(unnamed)"))
-          (org-babel-execute-src-block)))
+          (if no-cache
+              (org-babel-execute-src-block nil nil '((:cache . "no")))
+            (org-babel-execute-src-block))))
       (save-buffer)
       (kill-buffer))
 
-    (defun dagger-init-file (orgfile)
-      "Execute init bash blocks (those with :init yes) in ORGFILE."
+    (defvar dagger--block-error nil)
+
+    (defun dagger--capture-error (exit-code stderr)
+      "Advice: capture block failure details (ignore stderr-only warnings)."
+      (when (and (numberp exit-code) (> exit-code 0))
+        (setq dagger--block-error
+              (format "exit %s:\n%s" exit-code (or stderr "")))))
+
+    (defun dagger--execute-or-die (&optional info params)
+      "Execute src block; signal error if it exits non-zero."
+      (setq dagger--block-error nil)
+      (advice-add 'org-babel-eval-error-notify :before #'dagger--capture-error)
+      (unwind-protect
+          (if (and info params)
+              (org-babel-execute-src-block nil info params)
+            (org-babel-execute-src-block))
+        (advice-remove 'org-babel-eval-error-notify #'dagger--capture-error))
+      (when dagger--block-error
+        (error "Block failed (%s)" dagger--block-error)))
+
+    (defun dagger-init-file (orgfile &optional no-cache)
+      "Execute init bash blocks (those with :init yes) in ORGFILE.
+When NO-CACHE is non-nil, ignore cached results.
+Stops at first failure."
       (find-file orgfile)
       (org-babel-map-src-blocks nil
         (let* ((info (org-babel-get-src-block-info t))
@@ -459,7 +478,9 @@ programming setup, tangling pipeline, and editor configuration. See
                      (assq :init params))
             (message "%s Init %s..." (format-time-string "%H:%M:%S")
                      (or (org-element-property :name (org-element-at-point)) "(unnamed)"))
-            (org-babel-execute-src-block))))
+            (if no-cache
+                (dagger--execute-or-die info '((:cache . "no")))
+              (dagger--execute-or-die)))))
       (save-buffer)
       (kill-buffer))
 
@@ -498,14 +519,14 @@ programming setup, tangling pipeline, and editor configuration. See
   run_file() {
       local orgfile="$1"
       echo "Running $orgfile..."
-      local raw_output rc=0 no_cache_eval=""
+      local raw_output rc=0 no_cache_arg=""
       if [ -n "$NO_CACHE" ]; then
-          no_cache_eval="(dagger-run-ignore-cache)"
+          no_cache_arg="t"
       fi
       raw_output=$(emacs --batch --no-init-file \
           -l "$SCRIPT_DIR/tangle.el" \
           -l "$SCRIPT_DIR/run.el" \
-          --eval "(progn $no_cache_eval (dagger-run-file \"$orgfile\"))" 2>&1) || rc=$?
+          --eval "(dagger-run-file \"$orgfile\" $no_cache_arg)" 2>&1) || rc=$?
       if [ "$rc" -ne 0 ]; then
           echo "ERROR: emacs run failed (exit $rc):" >&2
           echo "$raw_output" >&2
@@ -531,20 +552,34 @@ programming setup, tangling pipeline, and editor configuration. See
   set up their dagger modules (=dagger init=, =dagger install=,
   local checkout rewrite).
 
+  With =--from-scratch=, first removes everything except
+  =readme.org= in each example directory.
+
   #+begin_src bash :tangle init-examples.sh :shebang "#!/usr/bin/env bash" :noweb yes
   # Initialize example dagger modules.
   # Usage:
   #   ./init-examples.sh                       # init all examples
   #   ./init-examples.sh --no-cache            # ignore cached results
+  #   ./init-examples.sh --from-scratch        # clean + init (implies --no-cache)
   #   ./init-examples.sh examples/foo/readme.org  # init a specific example
   set -eu
 
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
   NO_CACHE=
-  if [ "${1:-}" = "--no-cache" ]; then
-      NO_CACHE=1
-      shift
+  FROM_SCRATCH=
+  while [ "${1:-}" = "--no-cache" ] || [ "${1:-}" = "--from-scratch" ]; do
+      case "$1" in
+          --no-cache) NO_CACHE=1; shift ;;
+          --from-scratch) FROM_SCRATCH=1; NO_CACHE=1; shift ;;
+      esac
+  done
+
+  if [ -n "$FROM_SCRATCH" ]; then
+      for d in "$SCRIPT_DIR"/examples/*/; do
+          find "$d" -mindepth 1 -not -name readme.org -delete 2>/dev/null || true
+          find "$d" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+      done
   fi
 
   <<ensure-org>>
@@ -552,14 +587,14 @@ programming setup, tangling pipeline, and editor configuration. See
   init_file() {
       local orgfile="$1"
       echo "Init $orgfile..."
-      local raw_output rc=0 no_cache_eval=""
+      local raw_output rc=0 no_cache_arg=""
       if [ -n "$NO_CACHE" ]; then
-          no_cache_eval="(dagger-run-ignore-cache)"
+          no_cache_arg="t"
       fi
       raw_output=$(emacs --batch --no-init-file \
           -l "$SCRIPT_DIR/tangle.el" \
           -l "$SCRIPT_DIR/run.el" \
-          --eval "(progn $no_cache_eval (dagger-init-file \"$orgfile\"))" 2>&1) || rc=$?
+          --eval "(dagger-init-file \"$orgfile\" $no_cache_arg)" 2>&1) || rc=$?
       if [ "$rc" -ne 0 ]; then
           echo "ERROR: init failed (exit $rc):" >&2
           echo "$raw_output" >&2

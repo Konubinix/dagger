@@ -199,7 +199,7 @@ from dagger import dag, function
   #+end_src
 
   #+RESULTS[0bea1f5d8258e0b722ffe41289352dc340ff572b]: alpine_python_check
-  : Python 3.12.12
+  : Python 3.12.13
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_python_check") :noweb yes :exports none :comments no :padline no
   <<alpine_python_check()>>
@@ -237,7 +237,7 @@ from dagger import dag, function
   #+end_src
 
   #+RESULTS[4a5d1ec4127761d7a473f4c0f6770f5280830fa8]: alpine_python_user_venv_check
-  : Python 3.12.12
+  : Python 3.12.13
 
   #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_python_user_venv_check") :noweb yes :exports none :comments no :padline no
   <<alpine_python_user_venv_check()>>

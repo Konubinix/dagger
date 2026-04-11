@@ -19,7 +19,6 @@ dagger install github.com/Konubinix/daggerlib
 #+end_src
 
 #+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
-: Initialized module production_images in /home/sam/prog/daggerlib/examples/production_images
 
 The following is only for testing purposes — it makes the project
 use the local daggerlib checkout instead of the published version:
@@ -43,7 +42,7 @@ print(f"service started (timezone: {tz})")
 Then I write my Dagger module. The =<<run-distroless>>= reference is
 defined further below:
 
-#+begin_src python :tangle .dagger/src/production_images/main.py :mkdirp yes :noweb yes
+#+begin_src python :tangle .dagger/src/production_images/main.py :noweb yes
 from typing import Annotated
 
 import dagger

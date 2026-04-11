@@ -18,7 +18,6 @@ dagger install github.com/Konubinix/daggerlib
 #+end_src
 
 #+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
-: Initialized module non_root_user in /home/sam/prog/daggerlib/examples/non_root_user
 
 The following is only for testing purposes — it makes the project
 use the local daggerlib checkout instead of the published version:
@@ -33,7 +32,7 @@ sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",
 Then I write my Dagger module. Each =<<...>>= reference is defined in
 the sections below — they show the function code and its output:
 
-#+begin_src python :tangle .dagger/src/non_root_user/main.py :mkdirp yes :noweb yes
+#+begin_src python :tangle .dagger/src/non_root_user/main.py :noweb yes
 import dagger
 from dagger import dag, function, object_type
 

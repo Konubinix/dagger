@@ -37,7 +37,6 @@ dagger install github.com/Konubinix/daggerlib
 #+end_src
 
 #+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
-: Initialized module flask_application in /home/sam/prog/daggerlib/examples/flask_application
 
 The following is only for testing purposes — it makes the project
 use the local daggerlib checkout instead of the published version:
@@ -52,7 +51,7 @@ Then I write my Dagger module. The =<<...>>= references below are
 filled in by the function definitions that follow — each section
 defines one function and shows what it does when called:
 
-#+begin_src python :tangle .dagger/src/flask_application/main.py :mkdirp yes :noweb yes
+#+begin_src python :tangle .dagger/src/flask_application/main.py :noweb yes
 from typing import Annotated
 
 import dagger

@@ -49,14 +49,14 @@ export PATH="$SCRIPT_DIR/tests:$PATH"
 run_file() {
     local orgfile="$1"
     echo "Running $orgfile..."
-    local raw_output rc=0 no_cache_eval=""
+    local raw_output rc=0 no_cache_arg=""
     if [ -n "$NO_CACHE" ]; then
-        no_cache_eval="(dagger-run-ignore-cache)"
+        no_cache_arg="t"
     fi
     raw_output=$(emacs --batch --no-init-file \
         -l "$SCRIPT_DIR/tangle.el" \
         -l "$SCRIPT_DIR/run.el" \
-        --eval "(progn $no_cache_eval (dagger-run-file \"$orgfile\"))" 2>&1) || rc=$?
+        --eval "(dagger-run-file \"$orgfile\" $no_cache_arg)" 2>&1) || rc=$?
     if [ "$rc" -ne 0 ]; then
         echo "ERROR: emacs run failed (exit $rc):" >&2
         echo "$raw_output" >&2

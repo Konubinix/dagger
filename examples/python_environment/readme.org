@@ -44,7 +44,6 @@ dagger install github.com/Konubinix/daggerlib
 #+end_src
 
 #+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
-: Initialized module python_environment in /home/sam/prog/daggerlib/examples/python_environment
 
 The following is only for testing purposes — it makes the project
 use the local daggerlib checkout instead of the published version:
@@ -58,7 +57,7 @@ sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",
 Then I write my Dagger module. Each =<<...>>= reference is defined in
 the sections below:
 
-#+begin_src python :tangle .dagger/src/python_environment/main.py :mkdirp yes :noweb yes
+#+begin_src python :tangle .dagger/src/python_environment/main.py :noweb yes
 from typing import Annotated
 
 import dagger
