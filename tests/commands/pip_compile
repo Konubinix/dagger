@@ -1,2 +1,1 @@
-cd examples/python_environment
 dagger call pip-lock

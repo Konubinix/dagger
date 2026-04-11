@@ -1,2 +1,1 @@
-cd examples/production_images
 dagger call run-distroless
