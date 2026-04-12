@@ -1,0 +1,128 @@
+:PROPERTIES:
+:ID:       b564b33f-b2f1-4408-855f-738a48daffb6
+:END:
+#+TITLE: Shipping a webhook receiver
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :results verbatim :cache yes
+
+I want to build a webhook receiver that listens for GitHub events and
+triggers deployments. It's a small Flask app — a single file with a
+few routes. I need to package it in a container, and I don't want to
+write the venv setup from scratch every time I start a new
+microservice like this.
+
+Here is my app:
+
+#+begin_src python :tangle app.py
+from flask import Flask
+
+app = Flask(__name__)
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    return "deployment triggered\n"
+
+
+@app.route("/health")
+def health():
+    return "ok\n"
+#+end_src
+
+First I set up my Dagger project and install daggerlib:
+
+#+begin_src bash :eval no-export :init yes
+dagger init --sdk=python
+dagger install github.com/Konubinix/daggerlib
+#+end_src
+
+#+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
+: Initialized module webhook_receiver in /work/examples/webhook_receiver
+
+The following is only for testing purposes — it makes the project
+use the local daggerlib checkout instead of the published version:
+
+#+begin_src bash :eval no-export :init yes
+sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",|"../.."|' dagger.json
+#+end_src
+
+#+RESULTS[c0e43fe49406c11e84dec1670d2236fec6890c1b]:
+
+Then I write my Dagger module. The =<<...>>= references below are
+filled in by the function definitions that follow — each section
+defines one function and shows what it does when called:
+
+#+begin_src python :tangle .dagger/src/webhook_receiver/main.py :noweb yes
+from typing import Annotated
+
+import dagger
+from dagger import DefaultPath, dag, function, object_type
+
+
+@object_type
+class WebhookReceiver:
+    <<flask-routes>>
+    <<gunicorn-check>>
+#+end_src
+
+* Packaging the app in a container
+
+  I write a Dagger function that gets a Python container with Flask
+  installed, injects my app, and verifies it loads:
+
+  #+NAME: flask-routes
+  #+begin_src python
+  @function
+  async def flask_routes(self, src: Annotated[dagger.Directory, DefaultPath(".")]) -> str:
+      """Verify the Flask app loads and exposes the expected routes."""
+      return await (
+          dag.lib().alpine_python_user_venv(pip_packages=['flask'])
+          .with_file('/app/app.py', src.file('app.py'))
+          .with_exec(['python3', '-c', "from app import app; print(sorted(r.rule for r in app.url_map.iter_rules() if r.rule != '/static/<path:filename>'))"])
+          .stdout()
+      )
+  #+end_src
+
+  #+NAME: flask_app_loads
+  #+begin_src bash :tangle tests/commands/flask_app_loads :mkdirp yes :comments no :padline no
+  dagger call flask-routes
+  #+end_src
+
+  #+RESULTS[575f178aad7d58251b52e91bd67f01d8aaa9f9d9]: flask_app_loads
+  : ['/health', '/webhook']
+
+  #+BEGIN_SRC org :tangle tests/expected/flask_app_loads :mkdirp yes :noweb yes :exports none :comments no :padline no
+  <<flask_app_loads()>>
+  #+END_SRC
+
+* Running with gunicorn in production
+
+  In production, I don't use the Flask dev server — I need =gunicorn=
+  as the WSGI server. I add it to the same container and verify it
+  can find my app:
+
+  #+NAME: gunicorn-check
+  #+begin_src python
+  @function
+  async def gunicorn_check(self, src: Annotated[dagger.Directory, DefaultPath(".")]) -> str:
+      """Verify gunicorn can find the Flask app."""
+      return await (
+          dag.lib().alpine_python_user_venv(pip_packages=['flask', 'gunicorn'])
+          .with_file('/app/app.py', src.file('app.py'))
+          .with_exec(['gunicorn', '--check-config', 'app:app'])
+          .with_exec(['sh', '-c', 'echo gunicorn config ok'])
+          .stdout()
+      )
+  #+end_src
+
+  #+NAME: flask_gunicorn_check
+  #+begin_src bash :tangle tests/commands/flask_gunicorn_check :mkdirp yes :comments no :padline no
+  dagger call gunicorn-check
+  #+end_src
+
+  #+RESULTS[a72c07d60648654ceb4dc60746238e7ab665cafe]: flask_gunicorn_check
+  : gunicorn config ok
+
+  #+BEGIN_SRC org :tangle tests/expected/flask_gunicorn_check :mkdirp yes :noweb yes :exports none :comments no :padline no
+  <<flask_gunicorn_check()>>
+  #+END_SRC

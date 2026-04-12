@@ -1,0 +1,165 @@
+:PROPERTIES:
+:ID:       8f26da40-c5cb-4c37-9893-b1999c58366c
+:END:
+#+TITLE: Running CI tests like production
+#+LANGUAGE: en
+#+PROPERTY: header-args:bash :tangle no :results verbatim :cache yes 
+
+I got burned last month: my tests passed in CI but the app crashed in
+production because of a file permission bug. The tests ran as root,
+but production runs as a regular user. I want my CI containers to use
+the same non-root user as production so I catch these issues early.
+
+First I set up my Dagger project and install daggerlib:
+
+#+begin_src bash :eval no-export :init yes
+dagger init --sdk=python
+dagger install github.com/Konubinix/daggerlib
+#+end_src
+
+#+RESULTS[c4efdd5f981c9514f8ec08a7690bee71d70c7f38]:
+: Initialized module ci_like_production in /work/examples/ci_like_production
+
+The following is only for testing purposes — it makes the project
+use the local daggerlib checkout instead of the published version:
+
+#+begin_src bash :eval no-export :init yes
+sed -i '/pin/d; s|"github.com/Konubinix/daggerlib@main"|"../.."|; s|"\.\./\.\.",|"../.."|' dagger.json
+#+end_src
+
+#+RESULTS[c0e43fe49406c11e84dec1670d2236fec6890c1b]:
+
+
+Then I write my Dagger module. Each =<<...>>= reference is defined in
+the sections below — they show the function code and its output:
+
+#+begin_src python :tangle .dagger/src/ci_like_production/main.py :noweb yes
+import dagger
+from dagger import dag, function, object_type
+
+
+@object_type
+class CiLikeProduction:
+    <<whoami-check>>
+    <<home-check>>
+    <<uid-check>>
+    <<debian-uid-check>>
+#+end_src
+
+* Making sure the test container runs as a regular user
+
+  First I need to verify that my test container actually runs as a
+  non-root user, not root:
+
+  #+NAME: whoami-check
+  #+begin_src python
+  @function
+  async def whoami_check(self) -> str:
+      """Check that the container runs as a regular user."""
+      return await (
+          dag.lib().alpine_user()
+          .with_exec(['whoami'])
+          .stdout()
+      )
+  #+end_src
+
+  #+NAME: alpine_user_whoami
+  #+begin_src bash :tangle tests/commands/alpine_user_whoami :mkdirp yes :comments no :padline no
+  dagger call whoami-check
+  #+end_src
+
+  #+RESULTS[23eccc50df0b01460b5e9ff4dada33a943602f30]: alpine_user_whoami
+  : sam
+
+  #+BEGIN_SRC org :tangle tests/expected/alpine_user_whoami :mkdirp yes :noweb yes :exports none :comments no :padline no
+  <<alpine_user_whoami()>>
+  #+END_SRC
+
+* The test runner needs a proper home directory
+
+  My test harness writes temporary config files to =$HOME=. I need to
+  make sure the user has a real home directory, not =/= or
+  =/nonexistent=:
+
+  #+NAME: home-check
+  #+begin_src python
+  @function
+  async def home_check(self) -> str:
+      """Check the user has a real home directory."""
+      return await (
+          dag.lib().alpine_user()
+          .with_exec(['pwd'])
+          .stdout()
+      )
+  #+end_src
+
+  #+NAME: alpine_user_home
+  #+begin_src bash :tangle tests/commands/alpine_user_home :mkdirp yes :comments no :padline no
+  dagger call home-check
+  #+end_src
+
+  #+RESULTS[bc5cfed5a93843922b6aa6ac5ebcaecd1c1f583d]: alpine_user_home
+  : /home/sam
+
+  #+BEGIN_SRC org :tangle tests/expected/alpine_user_home :mkdirp yes :noweb yes :exports none :comments no :padline no
+  <<alpine_user_home()>>
+  #+END_SRC
+
+* Matching the production UID
+
+  Our Kubernetes pods run with UID 1000. I need the CI user to have
+  the same UID so that volume mounts and file ownership behave
+  identically:
+
+  #+NAME: uid-check
+  #+begin_src python
+  @function
+  async def uid_check(self) -> str:
+      """Check the user has UID 1000."""
+      return await (
+          dag.lib().alpine_user()
+          .with_exec(['id', 'sam'])
+          .stdout()
+      )
+  #+end_src
+
+  #+NAME: alpine_user_id
+  #+begin_src bash :tangle tests/commands/alpine_user_id :mkdirp yes :comments no :padline no
+  dagger call uid-check
+  #+end_src
+
+  #+RESULTS[ac20f429ad8426c65afaf0cf08dc5e0bff0b6e81]: alpine_user_id
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
+
+  #+BEGIN_SRC org :tangle tests/expected/alpine_user_id :mkdirp yes :noweb yes :exports none :comments no :padline no
+  <<alpine_user_id()>>
+  #+END_SRC
+
+* Some tests need Debian for native libraries
+
+  A few integration tests link against =libpq=, which is easier on
+  Debian. Same non-root guarantee:
+
+  #+NAME: debian-uid-check
+  #+begin_src python
+  @function
+  async def debian_uid_check(self) -> str:
+      """Check the Debian user has UID 1000."""
+      return await (
+          dag.lib().debian_user()
+          .with_exec(['id', 'sam'])
+          .stdout()
+      )
+  #+end_src
+
+  #+NAME: debian_user_id
+  #+begin_src bash :tangle tests/commands/debian_user_id :mkdirp yes :comments no :padline no
+  dagger call debian-uid-check
+  #+end_src
+
+  #+RESULTS[8ddb53ad51f9ea48fd9b628833e377591bb77161]: debian_user_id
+  : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
+
+  #+BEGIN_SRC org :tangle tests/expected/debian_user_id :mkdirp yes :noweb yes :exports none :comments no :padline no
+  <<debian_user_id()>>
+  #+END_SRC

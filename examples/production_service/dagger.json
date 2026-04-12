@@ -1,0 +1,14 @@
+{
+  "name": "production_service",
+  "engineVersion": "v0.20.3",
+  "sdk": {
+    "source": "python"
+  },
+  "dependencies": [
+    {
+      "name": "lib",
+      "source": "../.."
+    }
+  ],
+  "source": ".dagger"
+}
