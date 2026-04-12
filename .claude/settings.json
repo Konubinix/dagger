@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./tangle.sh)",
+      "Bash(./test.sh -v)",
+      "Bash(./run.sh --no-cache)"
+    ]
+  }
+}
