@@ -53,5 +53,12 @@
          (file-name-directory (or load-file-name buffer-file-name)))
       t)
 
+;; After tangling, auto-generate tests/expected/ files from #+RESULTS
+;; for every block that tangled to tests/commands/.
+(advice-add 'org-babel-tangle :filter-return
+            (lambda (files)
+              (daggerlib--write-expected-files files)
+              files))
+
 ;;; tangle.el ends here
 ;; Tangle configuration:1 ends here

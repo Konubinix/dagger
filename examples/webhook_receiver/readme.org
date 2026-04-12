@@ -84,16 +84,13 @@ class WebhookReceiver:
   #+end_src
 
   #+NAME: flask_app_loads
-  #+begin_src bash :tangle tests/commands/flask_app_loads :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call flask-routes
   #+end_src
 
-  #+RESULTS[575f178aad7d58251b52e91bd67f01d8aaa9f9d9]: flask_app_loads
+  #+RESULTS[c9f0eca6efec78e31fa8616a78de49e4e1490ce4]: flask_app_loads
   : ['/health', '/webhook']
 
-  #+BEGIN_SRC org :tangle tests/expected/flask_app_loads :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<flask_app_loads()>>
-  #+END_SRC
 
 * Running with gunicorn in production
 
@@ -116,13 +113,10 @@ class WebhookReceiver:
   #+end_src
 
   #+NAME: flask_gunicorn_check
-  #+begin_src bash :tangle tests/commands/flask_gunicorn_check :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call gunicorn-check
   #+end_src
 
-  #+RESULTS[a72c07d60648654ceb4dc60746238e7ab665cafe]: flask_gunicorn_check
+  #+RESULTS[f2029182ee7633550eb2c0b1674022429ac0763a]: flask_gunicorn_check
   : gunicorn config ok
 
-  #+BEGIN_SRC org :tangle tests/expected/flask_gunicorn_check :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<flask_gunicorn_check()>>
-  #+END_SRC

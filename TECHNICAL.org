@@ -215,32 +215,75 @@ programming setup, tangling pipeline, and editor configuration. See
   The ruff post-tangle hook ensures that Python files are formatted
   identically whether tangled from the command line or interactively.
 
-  The =daggerlib-tangle-test= helper returns the tangle path for
-  library test command files.  Each =dagger call= bash block in the
-  =src/*.org= files tangles to =tests/commands/<name>=.  =run.sh=
-  executes the bash blocks and populates =#+RESULTS:=.  Tangling
-  then writes those results to =tests/expected/= via noweb
-  references.  The test runner iterates over command files, runs
-  each one, and compares stdout to the expected output.
+  Each =dagger call= bash block carries a =#+NAME:= and tangles its
+  command to =tests/commands/<name>= via =:tangle (daggerlib-auto-test)=.
+  The function reads the block's name from =org-element-at-point= so
+  the name appears only once in the org source.
 
-  Example org files (=examples/*/readme.org=) tangle their tests
-  into the example's own =tests/commands/= and =tests/expected/=
-  directories using relative paths with =:mkdirp yes=.  The test
-  runner discovers these and runs them with =cwd= set to the
-  example directory so =dagger call= loads the example module.
+  Expected output files (=tests/expected/<name>=) are generated
+  automatically after tangling: =daggerlib--write-expected-files=
+  scans the org buffer for =#+RESULTS:= lines matching each tangled
+  command and writes them out.  This eliminates the separate
+  =#+BEGIN_SRC org= expected blocks that previously required
+  repeating the name.
+
+  The test runner iterates over command files, runs each one, and
+  compares stdout to the expected output.  Example tests
+  (=examples/*/tests/=) run with =cwd= set to the example directory
+  so =dagger call= loads the example module.
 
   #+begin_src emacs-lisp :tangle reproducibility-helpers.el
   ;;; reproducibility-helpers.el --- Tangle helpers for test commands
 
-  (defun daggerlib-tangle-test (name)
-    "Return the tangle path for test command NAME."
-    (expand-file-name (concat "tests/commands/" name)
-                      (locate-dominating-file default-directory ".git")))
+  (defun daggerlib--test-base-dir ()
+    "Return the base directory for test files.
+  For example org files (under examples/) use the example directory.
+  For library org files (under src/) use the project root."
+    (let* ((root (locate-dominating-file default-directory ".git"))
+           (rel (file-relative-name default-directory root)))
+      (if (string-prefix-p "examples/" rel)
+          default-directory
+        root)))
 
-  (defun daggerlib-tangle-expected (name)
-    "Return the tangle path for expected output NAME."
-    (expand-file-name (concat "tests/expected/" name)
-                      (locate-dominating-file default-directory ".git")))
+  (defun daggerlib-auto-test ()
+    "Derive tangle path for test command from the block's #+NAME."
+    (let ((name (org-element-property :name (org-element-at-point))))
+      (unless name (error "daggerlib-auto-test: no #+NAME on this block"))
+      (expand-file-name (concat "tests/commands/" name)
+                        (daggerlib--test-base-dir))))
+
+  (defun daggerlib--extract-result (name)
+    "Extract cached #+RESULTS lines for NAME in current buffer."
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward
+             (format "^[ \t]*#\\+RESULTS\\(?:\\[.*\\]\\)?:[ \t]+%s"
+                     (regexp-quote name))
+             nil t)
+        (forward-line 1)
+        (let ((lines nil))
+          (while (looking-at "^[ \t]*: \\(.*\\)")
+            (push (match-string-no-properties 1) lines)
+            (forward-line 1))
+          (when lines
+            (mapconcat #'identity (nreverse lines) "\n"))))))
+
+  (defun daggerlib--write-expected-files (tangled-files)
+    "For each tangled command file, write expected output from #+RESULTS."
+    (let ((root (locate-dominating-file default-directory ".git")))
+      (dolist (f tangled-files)
+        (when (string-match "/tests/commands/\\([^/]+\\)$" f)
+          (let* ((name (match-string 1 f))
+                 (result (daggerlib--extract-result name)))
+            (when result
+              (let* ((cmd-rel (file-relative-name f root))
+                     (exp-rel (replace-regexp-in-string
+                               "/commands/" "/expected/" cmd-rel))
+                     (expected-file (expand-file-name exp-rel root)))
+                (make-directory (file-name-directory expected-file) t)
+                (with-temp-file expected-file
+                  (insert result "\n"))
+                (message "auto-expected: %s" expected-file))))))))
 
   ;;; reproducibility-helpers.el ends here
   #+end_src
@@ -316,6 +359,11 @@ programming setup, tangling pipeline, and editor configuration. See
   recognises =#+begin_src nix= blocks for tangling without requiring an
   extra package.
 
+  After tangling, an advice on =org-babel-tangle= calls
+  =daggerlib--write-expected-files= to auto-generate
+  =tests/expected/<name>= from =#+RESULTS:= lines for every block
+  that tangled to =tests/commands/=.
+
   #+begin_src emacs-lisp :tangle tangle.el
   ;;; tangle.el --- Self-contained org-babel tangling for dagger lib -*- lexical-binding: t; -*-
 
@@ -370,6 +418,13 @@ programming setup, tangling pipeline, and editor configuration. See
   (load (expand-file-name "reproducibility-helpers.el"
            (file-name-directory (or load-file-name buffer-file-name)))
         t)
+
+  ;; After tangling, auto-generate tests/expected/ files from #+RESULTS
+  ;; for every block that tangled to tests/commands/.
+  (advice-add 'org-babel-tangle :filter-return
+              (lambda (files)
+                (daggerlib--write-expected-files files)
+                files))
 
   ;;; tangle.el ends here
   #+end_src

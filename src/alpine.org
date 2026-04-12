@@ -47,16 +47,13 @@ from dagger import dag, function
   We can verify the timezone is correctly set:
 
   #+NAME: alpine_timezone
-  #+begin_src bash :tangle (daggerlib-tangle-test "alpine_timezone") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine with-exec --args="cat","/etc/timezone" stdout
   #+end_src
 
   #+RESULTS[3cc353582a7a12211c1d6068181237e1d294ac3b]: alpine_timezone
   : Europe/Paris
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_timezone") :noweb yes :exports none :comments no :padline no
-  <<alpine_timezone()>>
-  #+END_SRC
 
 * A base Alpine container with optional extra packages
   :PROPERTIES:
@@ -83,16 +80,13 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: alpine_distro_packages
-  #+begin_src bash :tangle (daggerlib-tangle-test "alpine_distro_packages") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine --distro-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
   #+RESULTS[ff726b3fbdcb2e159d20e0b41f2c401868d4da7c]: alpine_distro_packages
   : /usr/bin/curl
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_distro_packages") :noweb yes :exports none :comments no :padline no
-  <<alpine_distro_packages()>>
-  #+END_SRC
 
 * A non-root user for safer workflows
   :PROPERTIES:
@@ -116,28 +110,22 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: alpine_user_check
-  #+begin_src bash :tangle (daggerlib-tangle-test "alpine_user_check") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine-user with-exec --args="id","sam" stdout
   #+end_src
 
   #+RESULTS[8b22ced4590bf3e6c94fe2c550ebb0e692f9627b]: alpine_user_check
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_user_check") :noweb yes :exports none :comments no :padline no
-  <<alpine_user_check()>>
-  #+END_SRC
 
   #+NAME: alpine_user_uid
-  #+begin_src bash :tangle (daggerlib-tangle-test "alpine_user_uid") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine-user --uid=2000 with-exec --args="id","-u" stdout
   #+end_src
 
   #+RESULTS[e6cf8b64551bb75c711f4788558b36d0f486cbbe]: alpine_user_uid
   : 2000
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_user_uid") :noweb yes :exports none :comments no :padline no
-  <<alpine_user_uid()>>
-  #+END_SRC
 
 * Timezone artifacts for other containers
   :PROPERTIES:
@@ -165,7 +153,7 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: alpine_tz_export
-  #+begin_src bash :tangle (daggerlib-tangle-test "alpine_tz_export") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   TMP="${TMP:-$(mktemp -d)}"
   dagger call alpine-tz export --path="$TMP/out" > /dev/null
   ls "$TMP/out" | sort
@@ -175,9 +163,6 @@ from dagger import dag, function
   : localtime
   : timezone
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_tz_export") :noweb yes :exports none :comments no :padline no
-  <<alpine_tz_export()>>
-  #+END_SRC
 
 * Python on Alpine
   :PROPERTIES:
@@ -194,16 +179,13 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: alpine_python_check
-  #+begin_src bash :tangle (daggerlib-tangle-test "alpine_python_check") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine-python with-exec --args="python3","--version" stdout
   #+end_src
 
   #+RESULTS[9e60677459aaa1f44f0a410caa7c607cd1933ded]: alpine_python_check
   : Python 3.12.13
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_python_check") :noweb yes :exports none :comments no :padline no
-  <<alpine_python_check()>>
-  #+END_SRC
 
 * Python with a user and virtualenv
   :PROPERTIES:
@@ -232,13 +214,10 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: alpine_python_user_venv_check
-  #+begin_src bash :tangle (daggerlib-tangle-test "alpine_python_user_venv_check") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
   #+end_src
 
   #+RESULTS[d571b928bf242d5eb1af4fcdade0238511038821]: alpine_python_user_venv_check
   : Python 3.12.13
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "alpine_python_user_venv_check") :noweb yes :exports none :comments no :padline no
-  <<alpine_python_user_venv_check()>>
-  #+END_SRC

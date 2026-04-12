@@ -87,19 +87,16 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: debian_timezone
-  #+begin_src bash :tangle (daggerlib-tangle-test "debian_timezone") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call debian with-exec --args="sh","-c","readlink -f /etc/localtime" stdout
   #+end_src
 
   #+RESULTS[08ec2ffc05ae8b3b04904038b70558a1cecd917c]: debian_timezone
   : /usr/share/zoneinfo/Europe/Paris
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_timezone") :noweb yes :exports none :comments no :padline no
-  <<debian_timezone()>>
-  #+END_SRC
 
   #+NAME: debian_no_recommends
-  #+begin_src bash :tangle (daggerlib-tangle-test "debian_no_recommends") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call debian with-exec --args="cat","/etc/apt/apt.conf.d/01norecommend" stdout
   #+end_src
 
@@ -107,21 +104,15 @@ from dagger import dag, function
   : APT::Install-Recommends "0";
   : APT::Install-Suggests "0";
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_no_recommends") :noweb yes :exports none :comments no :padline no
-  <<debian_no_recommends()>>
-  #+END_SRC
 
   #+NAME: debian_distro_packages
-  #+begin_src bash :tangle (daggerlib-tangle-test "debian_distro_packages") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call debian --distro-packages=curl with-exec --args="which","curl" stdout
   #+end_src
 
   #+RESULTS[65214f73ae9608be858e854a56c6b4bc18edf4d8]: debian_distro_packages
   : /usr/bin/curl
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_distro_packages") :noweb yes :exports none :comments no :padline no
-  <<debian_distro_packages()>>
-  #+END_SRC
 
 * Debian with a default user
 
@@ -136,16 +127,13 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: debian_user_check
-  #+begin_src bash :tangle (daggerlib-tangle-test "debian_user_check") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call debian-user with-exec --args="id","sam" stdout
   #+end_src
 
   #+RESULTS[6eac25d581af95ef511a77254bdbff450051ae5d]: debian_user_check
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_user_check") :noweb yes :exports none :comments no :padline no
-  <<debian_user_check()>>
-  #+END_SRC
 
 * Python with a user and virtualenv on Debian
 
@@ -167,16 +155,13 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: debian_python_user_venv_check
-  #+begin_src bash :tangle (daggerlib-tangle-test "debian_python_user_venv_check") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call debian-python-user-venv with-exec --args="sh","-c","test -d /app/venv && /app/venv/bin/python --version" stdout
   #+end_src
 
   #+RESULTS[772ddd8e7f9505b249f4a45b6e3ac1ed9390017c]: debian_python_user_venv_check
   : Python 3.13.5
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_python_user_venv_check") :noweb yes :exports none :comments no :padline no
-  <<debian_python_user_venv_check()>>
-  #+END_SRC
 
 * Extracting the localtime file
 
@@ -196,7 +181,7 @@ from dagger import dag, function
   #+end_src
 
   #+NAME: debian_localtime_export
-  #+begin_src bash :tangle (daggerlib-tangle-test "debian_localtime_export") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   TMP="${TMP:-$(mktemp -d)}"
   dagger call debian-localtime export --path="$TMP/out/localtime" > /dev/null
   test -s "$TMP/out/localtime" && echo "non-empty"
@@ -205,6 +190,3 @@ from dagger import dag, function
   #+RESULTS[8f46140f1cb03ce54c3b1f855d7145b9c5537611]: debian_localtime_export
   : non-empty
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "debian_localtime_export") :noweb yes :exports none :comments no :padline no
-  <<debian_localtime_export()>>
-  #+END_SRC

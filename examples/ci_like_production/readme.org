@@ -64,16 +64,13 @@ class CiLikeProduction:
   #+end_src
 
   #+NAME: alpine_user_whoami
-  #+begin_src bash :tangle tests/commands/alpine_user_whoami :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call whoami-check
   #+end_src
 
-  #+RESULTS[23eccc50df0b01460b5e9ff4dada33a943602f30]: alpine_user_whoami
+  #+RESULTS[0ab8c4412b617612696a5f03a52e030116b15d4b]: alpine_user_whoami
   : sam
 
-  #+BEGIN_SRC org :tangle tests/expected/alpine_user_whoami :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<alpine_user_whoami()>>
-  #+END_SRC
 
 * The test runner needs a proper home directory
 
@@ -94,16 +91,13 @@ class CiLikeProduction:
   #+end_src
 
   #+NAME: alpine_user_home
-  #+begin_src bash :tangle tests/commands/alpine_user_home :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call home-check
   #+end_src
 
-  #+RESULTS[bc5cfed5a93843922b6aa6ac5ebcaecd1c1f583d]: alpine_user_home
+  #+RESULTS[0159487f1d9b7d7cbd55a967d50f731192b82edf]: alpine_user_home
   : /home/sam
 
-  #+BEGIN_SRC org :tangle tests/expected/alpine_user_home :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<alpine_user_home()>>
-  #+END_SRC
 
 * Matching the production UID
 
@@ -124,16 +118,13 @@ class CiLikeProduction:
   #+end_src
 
   #+NAME: alpine_user_id
-  #+begin_src bash :tangle tests/commands/alpine_user_id :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call uid-check
   #+end_src
 
-  #+RESULTS[ac20f429ad8426c65afaf0cf08dc5e0bff0b6e81]: alpine_user_id
+  #+RESULTS[029cbf99f2d66729b862dd9e1743d3acbd7e95f6]: alpine_user_id
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),1000(sam)
 
-  #+BEGIN_SRC org :tangle tests/expected/alpine_user_id :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<alpine_user_id()>>
-  #+END_SRC
 
 * Some tests need Debian for native libraries
 
@@ -153,13 +144,10 @@ class CiLikeProduction:
   #+end_src
 
   #+NAME: debian_user_id
-  #+begin_src bash :tangle tests/commands/debian_user_id :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call debian-uid-check
   #+end_src
 
-  #+RESULTS[8ddb53ad51f9ea48fd9b628833e377591bb77161]: debian_user_id
+  #+RESULTS[cfade346152d52cdd3fd177353a8c82194d52930]: debian_user_id
   : uid=1000(sam) gid=1000(sam) groups=1000(sam),100(users)
 
-  #+BEGIN_SRC org :tangle tests/expected/debian_user_id :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<debian_user_id()>>
-  #+END_SRC

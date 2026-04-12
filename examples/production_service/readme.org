@@ -76,14 +76,11 @@ class ProductionService:
   #+end_src
 
   #+NAME: distroless_service
-  #+begin_src bash :tangle tests/commands/distroless_service :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call run-distroless
   #+end_src
 
-  #+RESULTS[0436f4d9d432ca157d99edd7414f4ff0ee34f76d]: distroless_service
+  #+RESULTS[9d3764ca69ba468f30edb6781a19ca9629bc5f7d]: distroless_service
   : service started (timezone: CEST)
 
-  #+BEGIN_SRC org :tangle tests/expected/distroless_service :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<distroless_service()>>
-  #+END_SRC
 

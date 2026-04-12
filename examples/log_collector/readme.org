@@ -102,16 +102,13 @@ class LogCollector:
   #+end_src
 
   #+NAME: collect_on_alpine
-  #+begin_src bash :tangle tests/commands/collect_on_alpine :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call collect-on-alpine
   #+end_src
 
-  #+RESULTS[d88a05e43641c9cb628e964d328f220f2e397e1e]: collect_on_alpine
+  #+RESULTS[5602acf0ade885c0c38c0ceebabaffd661b78ef6]: collect_on_alpine
   : [{"file": "app.log", "lines": 3}, {"file": "error.log", "lines": 2}]
 
-  #+BEGIN_SRC org :tangle tests/expected/collect_on_alpine :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<collect_on_alpine()>>
-  #+END_SRC
 
 * Collecting on Debian
 
@@ -133,16 +130,13 @@ class LogCollector:
   #+end_src
 
   #+NAME: collect_on_debian
-  #+begin_src bash :tangle tests/commands/collect_on_debian :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call collect-on-debian
   #+end_src
 
-  #+RESULTS[e26f5ff634c186c925d13027567dfd758dacfd78]: collect_on_debian
+  #+RESULTS[30d77058439c196dd93ea07d2bf53d84e90fca3c]: collect_on_debian
   : [{"file": "app.log", "lines": 3}, {"file": "error.log", "lines": 2}]
 
-  #+BEGIN_SRC org :tangle tests/expected/collect_on_debian :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<collect_on_debian()>>
-  #+END_SRC
 
 * Collecting on distroless
 
@@ -164,13 +158,10 @@ class LogCollector:
   #+end_src
 
   #+NAME: collect_on_distroless
-  #+begin_src bash :tangle tests/commands/collect_on_distroless :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call collect-on-distroless
   #+end_src
 
-  #+RESULTS[f471a186d9835111a45503df5fd869ee17b0cfaa]: collect_on_distroless
+  #+RESULTS[8624e71099d403f6b979a87b9a7b4cd3f37d44b5]: collect_on_distroless
   : [{"file": "app.log", "lines": 3}, {"file": "error.log", "lines": 2}]
 
-  #+BEGIN_SRC org :tangle tests/expected/collect_on_distroless :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<collect_on_distroless()>>
-  #+END_SRC

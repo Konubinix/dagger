@@ -382,13 +382,10 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
    #+end_src
 
   #+NAME: dind_docker_info
-  #+begin_src bash :tangle (daggerlib-tangle-test "dind_docker_info") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call dind-with-docker --cmd="docker info --format '{{.OSType}}'" stdout
   #+end_src
 
   #+RESULTS[ed3d4f41d5700e5de924ac245559d5a3578e180e]: dind_docker_info
   : linux
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "dind_docker_info") :noweb yes :exports none :comments no :padline no
-  <<dind_docker_info()>>
-  #+END_SRC

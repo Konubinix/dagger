@@ -133,25 +133,19 @@ from dagger import function
   We test user creation via the [[file:alpine.org::*A non-root user for safer workflows][alpine-user]] target (which calls [[*The full combo: create + switch][use_user]]):
 
   #+NAME: use_user_whoami
-  #+begin_src bash :tangle (daggerlib-tangle-test "use_user_whoami") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine-user with-exec --args="whoami" stdout
   #+end_src
 
   #+RESULTS[ad9da65b74b43a18ff32b4a91de1c86996df313f]: use_user_whoami
   : sam
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "use_user_whoami") :noweb yes :exports none :comments no :padline no
-  <<use_user_whoami()>>
-  #+END_SRC
 
   #+NAME: use_user_workdir
-  #+begin_src bash :tangle (daggerlib-tangle-test "use_user_workdir") :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :comments no :padline no
   dagger call alpine-user with-exec --args="pwd" stdout
   #+end_src
 
   #+RESULTS[780d9bdf1bf469c680666d68cda40f708f648318]: use_user_workdir
   : /home/sam
 
-  #+BEGIN_SRC org :tangle (daggerlib-tangle-expected "use_user_workdir") :noweb yes :exports none :comments no :padline no
-  <<use_user_workdir()>>
-  #+END_SRC

@@ -78,16 +78,13 @@ class ContainerTesting:
   #+end_src
 
   #+NAME: dind_test_kind
-  #+begin_src bash :tangle tests/commands/dind_test_kind :mkdirp yes :comments no :padline no
+  #+begin_src bash :tangle (daggerlib-auto-test) :mkdirp yes :comments no :padline no
   dagger call test-kind
   #+end_src
 
-  #+RESULTS[a8f56b1c4cf5070eca3245c06611ab8a1f0b7940]: dind_test_kind
+  #+RESULTS[9ac310fa60d006a7714622a0d03b10dff83da4ad]: dind_test_kind
   : Creating cluster...
   : Cluster 'test' created.
   : NAME            STATUS   ROLES           AGE
   : test-node       Ready    control-plane   1m
 
-  #+BEGIN_SRC org :tangle tests/expected/dind_test_kind :mkdirp yes :noweb yes :exports none :comments no :padline no
-  <<dind_test_kind()>>
-  #+END_SRC
