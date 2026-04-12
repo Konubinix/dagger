@@ -15,8 +15,12 @@ After editing org files, always run the full pipeline:
 3. ./tangle.sh (again — run.sh may create directories that tangle needs)
 4. ./test.sh
 
-If example structure changed (renames, new folders), add before step 2:
-  ./init-examples.sh --from-scratch
+When creating a new example, add ./init-examples.sh before step 1
+to bootstrap the dagger project (runs :init yes blocks).
+
+Use ./init-examples.sh --from-scratch only when refactoring the init
+blocks themselves — it wipes all generated files and re-runs init from
+zero. Never use it just because content changed.
 
 If the tooling does not work. Focus on fixing it. The tooling must be helpful
 and help me when something goes wrong. If the tooling does not help, improve the
