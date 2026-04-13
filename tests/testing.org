@@ -12,12 +12,12 @@ each one, and compares stdout to the expected output.
   :ID:       c7e8f9a0-b1c2-3d4e-5f6a-7b8c9d0e1f2a
   :END:
 
-  =test.sh= expects =pytest= and =pytest-asyncio= to be available on
+  =test-host.sh= expects =pytest= and =pytest-asyncio= to be available on
   the host. This =shell.nix= provides them via =nix-shell= so the
   test suite can run without polluting the system Python:
 
   #+begin_src bash :tangle no
-  nix-shell --run "./test.sh"
+  nix-shell --run "./test-host.sh"
   #+end_src
 
   #+begin_src nix :tangle ../shell.nix
@@ -32,7 +32,7 @@ each one, and compares stdout to the expected output.
   }
   #+end_src
 
-* The test entry point
+* The host test entry point
   :PROPERTIES:
   :ID:       d49833b6-c2c2-4041-aa38-b7afcb4c0ef9
   :END:
@@ -40,7 +40,7 @@ each one, and compares stdout to the expected output.
   The test script runs pytest directly. Tests call =dagger call=
   as subprocesses — no SDK connection needed.
 
-  #+begin_src bash :tangle ../test.sh :shebang "#!/usr/bin/env bash"
+  #+begin_src bash :tangle ../test-host.sh :shebang "#!/usr/bin/env bash"
   set -eu
   cd "$(dirname "$0")"
   for arg in "$@"; do
@@ -51,12 +51,12 @@ each one, and compares stdout to the expected output.
   exec pytest tests/test_sdk.py "$@"
   #+end_src
 
-* Docker-in-Docker test entry point
+* The test entry point
 
   Dogfooding: run the test suite inside a DinD container using the
   project's own =dind-run-tests= function.
 
-  #+begin_src bash :tangle ../test-dind.sh :shebang "#!/usr/bin/env bash"
+  #+begin_src bash :tangle ../test.sh :shebang "#!/usr/bin/env bash"
   set -eu
   cd "$(dirname "$0")"
   exec dagger ${DAGGER_EXTRA_ARGS:-} call dind-run-tests stdout
@@ -151,7 +151,7 @@ each one, and compares stdout to the expected output.
   finds the real =dagger= binary, sets =DARK=1= to skip the terminal
   background query, and redirects stderr to suppress progress output.
 
-  When =DAGGER_VERBOSE=1= (set by =test.sh -v=), the wrapper uses
+  When =DAGGER_VERBOSE=1= (set by =test-host.sh -v=), the wrapper uses
   =--progress=plain= instead and preserves stderr so test failures
   are diagnosable.
 

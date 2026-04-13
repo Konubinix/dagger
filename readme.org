@@ -59,7 +59,7 @@ that builds on top of Dagger.
 * Running the tests
 
   #+begin_src bash
-  ./test.sh -v
+  ./test.sh
   #+end_src
 
 * How it works

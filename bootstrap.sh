@@ -5,7 +5,7 @@
 # Steps:
 #   1. Clone pinned org-mode (if needed)
 #   2. Tangle TECHNICAL.org and tests/testing.org
-#      → produces tangle.el, run.el, tangle.sh, test.sh, etc.
+#      → produces tangle.el, run.el, tangle.sh, test-host.sh, etc.
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

@@ -14,7 +14,7 @@ jobs:
       - run: ./run.sh
       - run: ./tangle.sh
       - run: ./check-clean.sh
-      - run: ./test-dind.sh
+      - run: ./test.sh
 
       - name: Report failure
         if: failure()

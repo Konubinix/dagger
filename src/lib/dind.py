@@ -119,7 +119,7 @@ def dind_run_tests(
 
     Builds a test-ready container from the DinD base, installs Python,
     pytest, and the Dagger CLI, mounts the project source, and runs
-    ./test.sh with dockerd available.
+    ./test-host.sh with dockerd available.
     Source is mounted last so package installs are cached.
     """
     if src is None:
@@ -162,7 +162,7 @@ def dind_run_tests(
         "echo '=== dockerd ready ===' && "
         "docker info --format 'Docker: {{.ServerVersion}}' && "
         "echo '=== running test suite ===' && "
-        "./test.sh"
+        "./test-host.sh"
     )
     return self.dind_with_docker(cmd=cmd, ctr=ctr)
 

@@ -6,8 +6,8 @@ Use those scripts only:
 - ./tangle-host.sh (host emacs, called by tangle.sh)
 - ./run.sh (runs run-host.sh in a dagger container)
 - ./run-host.sh (host emacs, called by run.sh)
-- ./test.sh
-- ./test-dind.sh
+- ./test.sh (runs test-host.sh in a dagger container)
+- ./test-host.sh (host pytest, called by test.sh)
 
 After editing org files, always run the full pipeline:
 1. ./tangle.sh

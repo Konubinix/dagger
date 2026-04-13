@@ -87,7 +87,7 @@ from dagger import dag, function
         - Source of truth: .org files in src/ and readme.org at the root
         - Generated files: Python in src/lib/*.py, shell in tests/*.sh — NEVER edit these directly
         - To regenerate after editing .org files: ./tangle.sh (all) or ./tangle.sh src/foo.org (one file)
-        - Test command: `pytest tests/test_use_cases.py -v` (do NOT use ./test.sh, it requires nix)
+        - Test command: `pytest tests/test_use_cases.py -v` (do NOT use ./test-host.sh, it requires nix)
         - Tests compare dagger call output against cached #+RESULTS blocks in org files
 
         ## Workflow

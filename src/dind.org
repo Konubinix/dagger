@@ -173,7 +173,7 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
 
   Dogfooding: build a container that has everything needed to run the
   project tests (Python, pytest, Dagger CLI) on top of the DinD base,
-  then execute =./test.sh= with dockerd available.
+  then execute =./test-host.sh= with dockerd available.
 
   #+begin_src python
   @function
@@ -185,7 +185,7 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
 
       Builds a test-ready container from the DinD base, installs Python,
       pytest, and the Dagger CLI, mounts the project source, and runs
-      ./test.sh with dockerd available.
+      ./test-host.sh with dockerd available.
       Source is mounted last so package installs are cached.
       """
       if src is None:
@@ -215,7 +215,7 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
           "echo '=== dockerd ready ===' && "
           "docker info --format 'Docker: {{.ServerVersion}}' && "
           "echo '=== running test suite ===' && "
-          "./test.sh"
+          "./test-host.sh"
       )
       return self.dind_with_docker(cmd=cmd, ctr=ctr)
   #+end_src

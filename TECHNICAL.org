@@ -187,7 +187,7 @@ programming setup, tangling pipeline, and editor configuration. See
          src/lib/distroless.py src/lib/flask_venv.py src/lib/pip_tools.py \
          src/lib/user.py src/lib/main.py src/lib/__init__.py \
          tests/*.sh tests/test_use_cases.py \
-         tangle.sh tangle.el test.sh run.sh
+         tangle.sh tangle.el test-host.sh run.sh
   ./bootstrap.sh
   ./tangle.sh
   #+end_src
