@@ -137,37 +137,23 @@ programming setup, tangling pipeline, and editor configuration. See
 
 * Module context
 
-  The =.daggerignore= keeps volatile or large files out of the Dagger
-  module context.  Every file sent as module source is part of the
-  cache key: touching /any/ non-ignored file invalidates the cache and
-  forces a full re-run.  Only files that a =dagger call= function
-  actually needs should be included.
+  Each function uses =with_directory(".", source, include=[...])= to
+  select only the files it needs (see [[file:src/dind.org][dind.org]]).  The
+  =.daggerignore= only excludes =.git/= — which is large and never
+  needed inside the engine.  Everything else is handled by per-function
+  includes.
 
-  Note that =.tangle-deps/= is always mounted as a cache volume inside
-  the container (see [[file:src/dind.org][dind.org]]), so excluding it from the module
-  context loses nothing.
+  =.tangle-deps/= (230 MB, fetched by the tangling pipeline) is
+  mounted as a cache volume inside the container (see [[file:src/dind.org][dind.org]]) and
+  must be excluded here — otherwise it would change the module source
+  hash on every tangle and bust all caches.
 
   #+begin_src text :tangle .daggerignore :comments no
   .git
-  .pytest_cache
-  .ruff_cache
-  .claude
-  .clk
-  .dir-locals.el
-  .github
-  .gitignore
-  .gitattributes
-  .org-pin
-  .ralph-log
   .tangle-deps
   __pycache__
-  _site
-  CLAUDE.md
-  LICENSE
-  pyvenv.cfg
-  shell.nix
-  todo.org
-  uv.lock
+  .pytest_cache
+  .ruff_cache
   #+end_src
 
 * Editor configuration

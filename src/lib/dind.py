@@ -123,7 +123,24 @@ def dind_run_tests(
     Source is mounted last so package installs are cached.
     """
     if src is None:
-        src = dag.current_module().source()
+        src = (
+            dag.directory()
+            .with_directory(
+                ".",
+                dag.current_module().source(),
+                include=[
+                    "src/",
+                    "sdk/",
+                    "tests/",
+                    "examples/",
+                    "dagger.json",
+                    ".daggerignore",
+                    "pyproject.toml",
+                    "test-host.sh",
+                ],
+            )
+            .with_new_directory(".git")
+        )
 
     ctr = self.dind_container()
     ctr = (
@@ -178,7 +195,22 @@ def emacs_container(
 ) -> dagger.Container:
     """Return a lightweight container with emacs, git, python, and ruff."""
     if src is None:
-        src = dag.current_module().source()
+        src = dag.directory().with_directory(
+            ".",
+            dag.current_module().source(),
+            include=[
+                "src/",
+                "tests/",
+                "examples/",
+                ".clk/",
+                "dagger.json",
+                ".daggerignore",
+                "pyproject.toml",
+                "*.sh",
+                "*.el",
+                "*.org",
+            ],
+        )
 
     return (
         dag.container()
@@ -286,7 +318,22 @@ def dind_run_org(
     If files is given, only those org files are processed.
     """
     if src is None:
-        src = dag.current_module().source()
+        src = dag.directory().with_directory(
+            ".",
+            dag.current_module().source(),
+            include=[
+                "src/",
+                "tests/",
+                "examples/",
+                ".clk/",
+                "dagger.json",
+                ".daggerignore",
+                "pyproject.toml",
+                "*.sh",
+                "*.el",
+                "*.org",
+            ],
+        )
     ctr = self.dind_emacs_container()
     ctr = (
         ctr.with_directory("/work", src)
@@ -317,7 +364,22 @@ def dind_init_examples(
 ) -> dagger.Directory:
     """Init example modules inside a DinD container and return only the modified files."""
     if src is None:
-        src = dag.current_module().source()
+        src = dag.directory().with_directory(
+            ".",
+            dag.current_module().source(),
+            include=[
+                "src/",
+                "tests/",
+                "examples/",
+                ".clk/",
+                "dagger.json",
+                ".daggerignore",
+                "pyproject.toml",
+                "*.sh",
+                "*.el",
+                "*.org",
+            ],
+        )
     ctr = self.dind_emacs_container()
     ctr = (
         ctr.with_directory("/work", src)
