@@ -7,6 +7,6 @@ args=("$@")
 if [ "${DAGGER_VERBOSE:-}" = "1" ]; then
     exec "$DAGGER_PATH" --progress=plain --silent "${args[@]}"
 else
-    exec "$DAGGER_PATH" --silent "${args[@]}" 2>/dev/null
+    exec "$DAGGER_PATH" --silent "${args[@]}"
 fi
 # Dagger wrapper for batch execution:1 ends here

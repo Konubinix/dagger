@@ -155,6 +155,10 @@ each one, and compares stdout to the expected output.
   =--progress=plain= instead and preserves stderr so test failures
   are diagnosable.
 
+  In non-verbose mode, stderr is preserved so test failures are
+  always diagnosable.  Pytest captures it and only shows it when a
+  test fails, so successful runs stay clean.
+
   #+begin_src bash :tangle dagger :shebang "#!/usr/bin/env bash"
     export DAGGER_NO_NAG=1
     export DARK=1
@@ -163,6 +167,6 @@ each one, and compares stdout to the expected output.
     if [ "${DAGGER_VERBOSE:-}" = "1" ]; then
         exec "$DAGGER_PATH" --progress=plain --silent "${args[@]}"
     else
-        exec "$DAGGER_PATH" --silent "${args[@]}" 2>/dev/null
+        exec "$DAGGER_PATH" --silent "${args[@]}"
     fi
   #+end_src
