@@ -5,7 +5,7 @@
   "Return the base directory for test files.
 For example org files (under examples/) use the example directory.
 For library org files (under src/) use the project root."
-  (let* ((root (locate-dominating-file default-directory ".git"))
+  (let* ((root (locate-dominating-file default-directory "dagger.json"))
          (rel (file-relative-name default-directory root)))
     (if (string-prefix-p "examples/" rel)
         default-directory
@@ -36,7 +36,7 @@ For library org files (under src/) use the project root."
 
 (defun daggerlib--write-expected-files (tangled-files)
   "For each tangled command file, write expected output from #+RESULTS."
-  (let ((root (locate-dominating-file default-directory ".git")))
+  (let ((root (locate-dominating-file default-directory "dagger.json")))
     (dolist (f tangled-files)
       (when (string-match "/tests/commands/\\([^/]+\\)$" f)
         (let* ((name (match-string 1 f))
