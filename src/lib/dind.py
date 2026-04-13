@@ -43,19 +43,6 @@ _DOCKERD_START = (
 
 
 class DindMixin:
-    _EMACS_INCLUDE = [
-        "src/",
-        "tests/",
-        "examples/",
-        ".clk/",
-        "dagger.json",
-        ".daggerignore",
-        "pyproject.toml",
-        "*.sh",
-        "*.el",
-        "*.org",
-    ]
-
     @function
     def dind_container(
         self,
@@ -141,7 +128,8 @@ class DindMixin:
                 ".",
                 dag.current_module().source(),
                 include=[
-                    "src/",
+                    "src/lib/",
+                    "src/ralph.yml",
                     "sdk/",
                     "tests/",
                     "examples/",
@@ -274,7 +262,16 @@ class DindMixin:
         src = dag.directory().with_directory(
             ".",
             dag.current_module().source(),
-            include=self._EMACS_INCLUDE,
+            include=[
+                "src/",
+                "tests/",
+                "examples/",
+                ".clk/",
+                "*.org",
+                "*.sh",
+                "*.el",
+                "dagger.json",
+            ],
         )
         ctr = self.emacs_container(src=src)
         ctr = ctr.with_mounted_cache(
@@ -297,7 +294,20 @@ class DindMixin:
         src = dag.directory().with_directory(
             ".",
             dag.current_module().source(),
-            include=self._EMACS_INCLUDE,
+            include=[
+                "src/",
+                "examples/",
+                "tests/dagger",
+                "tests/ralph-log-filter",
+                "tests/ralph_log_sample.txt",
+                "*.org",
+                "*.sh",
+                "*.el",
+                "dagger.json",
+                ".daggerignore",
+                "pyproject.toml",
+                "sdk/",
+            ],
         )
         ctr = self.dind_emacs_container()
         ctr = (
@@ -325,7 +335,16 @@ class DindMixin:
         src = dag.directory().with_directory(
             ".",
             dag.current_module().source(),
-            include=self._EMACS_INCLUDE,
+            include=[
+                "src/lib/",
+                "examples/",
+                "*.sh",
+                "*.el",
+                "dagger.json",
+                ".daggerignore",
+                "pyproject.toml",
+                "sdk/",
+            ],
         )
         ctr = self.dind_emacs_container()
         ctr = (
@@ -349,7 +368,14 @@ class DindMixin:
         src = dag.directory().with_directory(
             ".",
             dag.current_module().source(),
-            include=self._EMACS_INCLUDE,
+            include=[
+                "src/*.org",
+                "tests/testing.org",
+                "examples/*/readme.org",
+                "*.org",
+                "*.sh",
+                "*.el",
+            ],
         )
         ctr = self.emacs_container(src=src)
         ctr = ctr.with_mounted_cache(

@@ -73,10 +73,6 @@ _DOCKERD_START = (
 
 class DindMixin:
 
-    _EMACS_INCLUDE = ["src/", "tests/", "examples/", ".clk/",
-                      "dagger.json", ".daggerignore", "pyproject.toml",
-                      "*.sh", "*.el", "*.org"]
-
     <<dind-container>>
 
     <<dind-with-docker>>
@@ -229,7 +225,7 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
       """
       src = dag.directory().with_directory(
           ".", dag.current_module().source(),
-          include=["src/", "sdk/", "tests/", "examples/",
+          include=["src/lib/", "src/ralph.yml", "sdk/", "tests/", "examples/",
                    "dagger.json", ".daggerignore", "pyproject.toml",
                    "test-host.sh"],
       ).with_new_directory(".git")
@@ -345,7 +341,9 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
        """Tangle org files inside a container and return only the modified files."""
        src = dag.directory().with_directory(
            ".", dag.current_module().source(),
-           include=self._EMACS_INCLUDE,
+           include=["src/", "tests/", "examples/", ".clk/",
+                    "*.org", "*.sh", "*.el",
+                    "dagger.json"],
        )
        ctr = self.emacs_container(src=src)
        ctr = ctr.with_mounted_cache("/work/.tangle-deps", dag.cache_volume("tangle-deps"))
@@ -373,7 +371,12 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
        """
        src = dag.directory().with_directory(
            ".", dag.current_module().source(),
-           include=self._EMACS_INCLUDE,
+           include=["src/", "examples/",
+                    "tests/dagger", "tests/ralph-log-filter",
+                    "tests/ralph_log_sample.txt",
+                    "*.org", "*.sh", "*.el",
+                    "dagger.json", ".daggerignore", "pyproject.toml",
+                    "sdk/"],
        )
        ctr = self.dind_emacs_container()
        ctr = (
@@ -409,7 +412,10 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
        """Init example modules inside a DinD container and return only the modified files."""
        src = dag.directory().with_directory(
            ".", dag.current_module().source(),
-           include=self._EMACS_INCLUDE,
+           include=["src/lib/", "examples/",
+                    "*.sh", "*.el",
+                    "dagger.json", ".daggerignore", "pyproject.toml",
+                    "sdk/"],
        )
        ctr = self.dind_emacs_container()
        ctr = (
@@ -442,7 +448,9 @@ apt-get install --yes docker-ce docker-ce-cli containerd.io
        """Export org files to HTML with noweb expansion for GitHub Pages."""
        src = dag.directory().with_directory(
            ".", dag.current_module().source(),
-           include=self._EMACS_INCLUDE,
+           include=["src/*.org", "tests/testing.org",
+                    "examples/*/readme.org",
+                    "*.org", "*.sh", "*.el"],
        )
        ctr = self.emacs_container(src=src)
        ctr = ctr.with_mounted_cache("/work/.tangle-deps", dag.cache_volume("tangle-deps"))
