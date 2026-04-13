@@ -111,10 +111,7 @@ def dind_with_docker(
 
 # [[file:../dind.org::*Running the test suite inside DinD][Running the test suite inside DinD:1]]
 @function
-def dind_run_tests(
-    self,
-    src: dagger.Directory | None = None,
-) -> dagger.Container:
+def dind_run_tests(self) -> dagger.Container:
     """Run the project test suite inside Docker-in-Docker (dogfooding).
 
     Builds a test-ready container from the DinD base, installs Python,
@@ -122,25 +119,24 @@ def dind_run_tests(
     ./test-host.sh with dockerd available.
     Source is mounted last so package installs are cached.
     """
-    if src is None:
-        src = (
-            dag.directory()
-            .with_directory(
-                ".",
-                dag.current_module().source(),
-                include=[
-                    "src/",
-                    "sdk/",
-                    "tests/",
-                    "examples/",
-                    "dagger.json",
-                    ".daggerignore",
-                    "pyproject.toml",
-                    "test-host.sh",
-                ],
-            )
-            .with_new_directory(".git")
+    src = (
+        dag.directory()
+        .with_directory(
+            ".",
+            dag.current_module().source(),
+            include=[
+                "src/",
+                "sdk/",
+                "tests/",
+                "examples/",
+                "dagger.json",
+                ".daggerignore",
+                "pyproject.toml",
+                "test-host.sh",
+            ],
         )
+        .with_new_directory(".git")
+    )
 
     ctr = self.dind_container()
     ctr = (
@@ -191,27 +187,9 @@ def dind_run_tests(
 @function
 def emacs_container(
     self,
-    src: dagger.Directory | None = None,
+    src: dagger.Directory,
 ) -> dagger.Container:
     """Return a lightweight container with emacs, git, python, and ruff."""
-    if src is None:
-        src = dag.directory().with_directory(
-            ".",
-            dag.current_module().source(),
-            include=[
-                "src/",
-                "tests/",
-                "examples/",
-                ".clk/",
-                "dagger.json",
-                ".daggerignore",
-                "pyproject.toml",
-                "*.sh",
-                "*.el",
-                "*.org",
-            ],
-        )
-
     return (
         dag.container()
         .from_(self.dind_ubuntu_image)
@@ -287,14 +265,29 @@ def dind_emacs_container(self) -> dagger.Container:
 
 # Running org-babel in a container:2 ends here
 
-
 # [[file:../dind.org::*Tangling org files][Tangling org files:1]]
+_EMACS_INCLUDE = [
+    "src/",
+    "tests/",
+    "examples/",
+    ".clk/",
+    "dagger.json",
+    ".daggerignore",
+    "pyproject.toml",
+    "*.sh",
+    "*.el",
+    "*.org",
+]
+
+
 @function
-def dind_tangle(
-    self,
-    src: dagger.Directory | None = None,
-) -> dagger.Directory:
+def dind_tangle(self) -> dagger.Directory:
     """Tangle org files inside a container and return only the modified files."""
+    src = dag.directory().with_directory(
+        ".",
+        dag.current_module().source(),
+        include=self._EMACS_INCLUDE,
+    )
     ctr = self.emacs_container(src=src)
     ctr = ctr.with_mounted_cache("/work/.tangle-deps", dag.cache_volume("tangle-deps"))
     before = ctr.directory("/work")
@@ -310,30 +303,17 @@ def dind_tangle(
 def dind_run_org(
     self,
     files: list[str] | None = None,
-    src: dagger.Directory | None = None,
     no_cache: bool = False,
 ) -> dagger.Directory:
     """Run org-babel blocks inside a DinD container and return only the modified files.
 
     If files is given, only those org files are processed.
     """
-    if src is None:
-        src = dag.directory().with_directory(
-            ".",
-            dag.current_module().source(),
-            include=[
-                "src/",
-                "tests/",
-                "examples/",
-                ".clk/",
-                "dagger.json",
-                ".daggerignore",
-                "pyproject.toml",
-                "*.sh",
-                "*.el",
-                "*.org",
-            ],
-        )
+    src = dag.directory().with_directory(
+        ".",
+        dag.current_module().source(),
+        include=self._EMACS_INCLUDE,
+    )
     ctr = self.dind_emacs_container()
     ctr = (
         ctr.with_directory("/work", src)
@@ -358,28 +338,15 @@ def dind_run_org(
 @function
 def dind_init_examples(
     self,
-    src: dagger.Directory | None = None,
     from_scratch: bool = False,
     no_cache: bool = False,
 ) -> dagger.Directory:
     """Init example modules inside a DinD container and return only the modified files."""
-    if src is None:
-        src = dag.directory().with_directory(
-            ".",
-            dag.current_module().source(),
-            include=[
-                "src/",
-                "tests/",
-                "examples/",
-                ".clk/",
-                "dagger.json",
-                ".daggerignore",
-                "pyproject.toml",
-                "*.sh",
-                "*.el",
-                "*.org",
-            ],
-        )
+    src = dag.directory().with_directory(
+        ".",
+        dag.current_module().source(),
+        include=self._EMACS_INCLUDE,
+    )
     ctr = self.dind_emacs_container()
     ctr = (
         ctr.with_directory("/work", src)
@@ -402,11 +369,13 @@ def dind_init_examples(
 
 # [[file:../dind.org::*Exporting org files to HTML][Exporting org files to HTML:1]]
 @function
-def export_html(
-    self,
-    src: dagger.Directory | None = None,
-) -> dagger.Directory:
+def export_html(self) -> dagger.Directory:
     """Export org files to HTML with noweb expansion for GitHub Pages."""
+    src = dag.directory().with_directory(
+        ".",
+        dag.current_module().source(),
+        include=self._EMACS_INCLUDE,
+    )
     ctr = self.emacs_container(src=src)
     ctr = ctr.with_mounted_cache("/work/.tangle-deps", dag.cache_volume("tangle-deps"))
     return ctr.with_exec(["./export-html-host.sh"]).directory("/work/_site")
