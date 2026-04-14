@@ -15,18 +15,22 @@ class DistrolessMixin:
     @function
     def distroless_python3_debian(self) -> dagger.Container:
         """Distroless python3 with timezone set."""
-        ctr = dag.container().from_(
-            f"gcr.io/distroless/python3-debian{self.debian_version}"
-        )
+        ctr = dag.container().from_(self.pinned(self._distroless_python3_image))
         return self.distroless_set_tz(ctr)
 
     @function
     def distroless_debian(self) -> dagger.Container:
         """Distroless static with timezone set."""
-        ctr = dag.container().from_(
-            f"gcr.io/distroless/static-debian{self.debian_version}"
-        )
+        ctr = dag.container().from_(self.pinned(self._distroless_static_image))
         return self.distroless_set_tz(ctr)
+
+    @property
+    def _distroless_python3_image(self) -> str:
+        return f"gcr.io/distroless/python3-debian{self.debian_version}"
+
+    @property
+    def _distroless_static_image(self) -> str:
+        return f"gcr.io/distroless/static-debian{self.debian_version}"
 
 
 # No heading:1 ends here

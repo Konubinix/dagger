@@ -30,6 +30,8 @@ class AlpineMixin:
     <<alpine-python>>
 
     <<alpine-python-user-venv>>
+
+    <<alpine-image>>
 #+end_src
 
 * Setting the timezone on Alpine
@@ -89,7 +91,7 @@ class AlpineMixin:
   @function
   def alpine(self, distro_packages: list[str] = ()) -> dagger.Container:
       """Alpine with timezone set and optional extra packages."""
-      ctr = dag.container().from_(f"alpine:{self.alpine_version}")
+      ctr = dag.container().from_(self.pinned(self._alpine_image))
       ctr = self.alpine_set_tz(ctr)
       if distro_packages:
           ctr = ctr.with_exec(["apk", "--quiet", "add"] + list(distro_packages))
@@ -241,4 +243,19 @@ class AlpineMixin:
 
   #+RESULTS[d571b928bf242d5eb1af4fcdade0238511038821]: alpine_python_user_venv_check
   : Python 3.12.13
+
+
+* Image reference for pin management
+
+  The =_alpine_image= property is the single definition of which
+  Alpine image this mixin uses.  It is referenced by =alpine()= above
+  and discovered automatically by =PinsMixin._image_tags()= (any
+  property whose name ends with =_image= is collected for pinning).
+
+  #+NAME: alpine-image
+  #+begin_src python
+  @property
+  def _alpine_image(self) -> str:
+      return f"alpine:{self.alpine_version}"
+  #+end_src
 

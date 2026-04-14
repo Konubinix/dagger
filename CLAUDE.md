@@ -8,12 +8,15 @@ Use those scripts only:
 - ./run-host.sh (host emacs, called by run.sh)
 - ./test.sh (runs test-host.sh in a dagger container)
 - ./test-host.sh (host pytest, called by test.sh)
+- ./upgrade-pins.sh (resolves image tags to current digests)
 
 After editing org files, always run the full pipeline:
 1. ./tangle.sh
 2. ./run.sh (in doubt, always run — it's fast if not needed)
 3. ./tangle.sh (again — run.sh may create directories that tangle needs)
 4. ./test.sh
+5. ./upgrade-pins.sh (upgrade image digests to latest)
+6. ./test.sh (verify new images don't break anything)
 
 If ./tangle.sh fails because the module can't load (e.g. syntax error
 in tangled Python after editing org), use ./tangle-host.sh to tangle

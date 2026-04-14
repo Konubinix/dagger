@@ -22,7 +22,7 @@ class AlpineMixin:
     @function
     def alpine(self, distro_packages: list[str] = ()) -> dagger.Container:
         """Alpine with timezone set and optional extra packages."""
-        ctr = dag.container().from_(f"alpine:{self.alpine_version}")
+        ctr = dag.container().from_(self.pinned(self._alpine_image))
         ctr = self.alpine_set_tz(ctr)
         if distro_packages:
             ctr = ctr.with_exec(["apk", "--quiet", "add"] + list(distro_packages))
@@ -69,6 +69,10 @@ class AlpineMixin:
         return self.python_user_venv(
             ctr, groups=groups, pip_packages=pip_packages, work_dir=work_dir
         )
+
+    @property
+    def _alpine_image(self) -> str:
+        return f"alpine:{self.alpine_version}"
 
 
 # No heading:1 ends here

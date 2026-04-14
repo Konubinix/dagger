@@ -1,0 +1,102 @@
+#+TITLE: Digest-pinned container images
+#+LANGUAGE: en
+#+PROPERTY: header-args:python :tangle no
+
+Floating image tags (=alpine:3.23=, =ubuntu:24.04=, …) cause
+unpredictable cache busting when registries push new builds.  I pin
+images by digest for reproducible builds, and upgrade the pins
+explicitly when I want newer images.
+
+The pins live in =image-pins.json= at the project root — a flat map
+from tag to digest.  The =pinned()= helper looks up the digest and
+returns =tag@sha256:…= so Dagger always resolves to the exact build I
+tested.
+
+#+begin_src python :tangle lib/pins.py :noweb yes
+import json
+from pathlib import Path
+
+import dagger
+from dagger import dag, function
+
+
+_PINS_FILE = Path(__file__).resolve().parent.parent.parent / "image-pins.json"
+
+
+def _load_pins() -> dict[str, str]:
+    if _PINS_FILE.exists():
+        return json.loads(_PINS_FILE.read_text())
+    return {}
+
+
+class PinsMixin:
+
+    <<pinned>>
+
+    <<image-tags>>
+
+    <<upgrade-pins>>
+#+end_src
+
+* Resolving a pinned image reference
+
+  Given a tag like =alpine:3.23=, return =alpine:3.23@sha256:…= if a
+  pin exists, or the bare tag otherwise.  This lets the module work
+  without a pin file (first-time setup) and degrades gracefully when a
+  version field changes before the pins are updated.
+
+  #+NAME: pinned
+  #+begin_src python
+  def pinned(self, tag: str) -> str:
+      """Return tag@digest if pinned, else bare tag."""
+      digest = _load_pins().get(tag)
+      if digest:
+          return f"{tag}@{digest}"
+      return tag
+  #+end_src
+
+* Collecting all image references from mixins
+
+  Each mixin declares the images it uses as properties whose name ends
+  with =_image= (e.g. =_alpine_image=, =_dind_engine_image=).  The
+  image tag string is defined once — the property — and used both by
+  the mixin's =.from_()= call and by this discovery method.
+
+  Adding a new base image to any mixin is a two-step process: define
+  the =_<name>_image= property and use it in =.from_()=.  No central
+  list to update.
+
+  #+NAME: image-tags
+  #+begin_src python
+  def _image_tags(self) -> list[str]:
+      tags = []
+      for name in sorted(dir(type(self))):
+          if name.endswith("_image") and name.startswith("_") and name != "_image":
+              value = getattr(type(self), name)
+              if isinstance(value, property):
+                  tags.append(getattr(self, name))
+      return tags
+  #+end_src
+
+* Upgrading pins to the latest digests
+
+  Resolves every tag to its current registry digest using =crane= and
+  returns an updated =image-pins.json=.
+
+  #+NAME: upgrade-pins
+  #+begin_src python
+  @function
+  async def upgrade_pins(self) -> dagger.File:
+      """Resolve all image tags to their current digests and return image-pins.json."""
+      ctr = (
+          dag.container()
+          .from_(self.pinned("cgr.dev/chainguard/crane:latest"))
+          .with_entrypoint([])
+      )
+      pins: dict[str, str] = {}
+      for tag in self._image_tags():
+          digest = await ctr.with_exec(["crane", "digest", tag]).stdout()
+          pins[tag] = digest.strip()
+      content = json.dumps(pins, indent=2) + "\n"
+      return dag.directory().with_new_file("image-pins.json", content).file("image-pins.json")
+  #+end_src

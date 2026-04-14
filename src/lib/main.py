@@ -8,6 +8,7 @@ from .debian import DebianMixin
 from .dind import DindMixin
 from .distroless import DistrolessMixin
 from .flask_venv import FlaskMixin
+from .pins import PinsMixin
 from .pip_tools import PipToolsMixin
 from .python import PythonMixin
 from .ralph import RalphMixin
@@ -24,6 +25,7 @@ class Lib(
     DindMixin,
     FlaskMixin,
     PipToolsMixin,
+    PinsMixin,
     RalphMixin,
 ):
     alpine_version: str = "3.23"

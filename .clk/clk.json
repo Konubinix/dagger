@@ -33,8 +33,24 @@
         "test": {
             "commands": [
                 [
-                    "check-clean",
-                    "--flow"
+                    "tangle"
+                ],
+                [
+                    "run"
+                ],
+                [
+                    "tangle"
+                ],
+                [
+                    "check-clean"
+                ],
+                [
+                    "exec",
+                    "--in-project",
+                    "./test.sh"
+                ],
+                [
+                    "upgrade"
                 ],
                 [
                     "exec",
@@ -43,12 +59,16 @@
                 ]
             ],
             "documentation": null
+        },
+        "upgrade": {
+            "commands": [
+                [
+                    "exec",
+                    "--in-project",
+                    "./upgrade-pins.sh"
+                ]
+            ],
+            "documentation": null
         }
-    },
-    "flowdeps": {
-        "check-clean": [
-            "run",
-            "tangle"
-        ]
     }
 }

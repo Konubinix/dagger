@@ -40,7 +40,7 @@ class DebianMixin:
     @function
     def debian(self, distro_packages: list[str] = ()) -> dagger.Container:
         """Debian slim with timezone set, no auto-install, and optional extra packages."""
-        ctr = dag.container().from_(f"debian:{self.debian_tag}")
+        ctr = dag.container().from_(self.pinned(self._debian_image))
         ctr = self.debian_no_auto_install(ctr)
         ctr = self.debian_set_tz(ctr)
         if distro_packages:
@@ -81,6 +81,10 @@ class DebianMixin:
     def debian_localtime(self) -> dagger.File:
         """Extract the localtime file from a Debian container."""
         return self.debian().file("/etc/localtime")
+
+    @property
+    def _debian_image(self) -> str:
+        return f"debian:{self.debian_tag}"
 
 
 # No heading:1 ends here

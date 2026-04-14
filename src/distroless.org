@@ -19,6 +19,10 @@ class DistrolessMixin:
     <<distroless-python3-debian>>
 
     <<distroless-debian>>
+
+    <<distroless-python3-image>>
+
+    <<distroless-static-image>>
 #+end_src
 
 * Setting the timezone on distroless
@@ -55,9 +59,7 @@ class DistrolessMixin:
   @function
   def distroless_python3_debian(self) -> dagger.Container:
       """Distroless python3 with timezone set."""
-      ctr = dag.container().from_(
-          f"gcr.io/distroless/python3-debian{self.debian_version}"
-      )
+      ctr = dag.container().from_(self.pinned(self._distroless_python3_image))
       return self.distroless_set_tz(ctr)
   #+end_src
 
@@ -79,9 +81,7 @@ class DistrolessMixin:
   @function
   def distroless_debian(self) -> dagger.Container:
       """Distroless static with timezone set."""
-      ctr = dag.container().from_(
-          f"gcr.io/distroless/static-debian{self.debian_version}"
-      )
+      ctr = dag.container().from_(self.pinned(self._distroless_static_image))
       return self.distroless_set_tz(ctr)
   #+end_src
 
@@ -94,4 +94,23 @@ class DistrolessMixin:
 
   #+RESULTS[3d90657054fd995231b339ed7b0a37c620a3c7bd]: distroless_static_export
   : non-empty
+
+
+* Image references for pin management
+
+  See [[file:alpine.org::*Image reference for pin management][alpine]] for the convention.
+
+  #+NAME: distroless-python3-image
+  #+begin_src python
+  @property
+  def _distroless_python3_image(self) -> str:
+      return f"gcr.io/distroless/python3-debian{self.debian_version}"
+  #+end_src
+
+  #+NAME: distroless-static-image
+  #+begin_src python
+  @property
+  def _distroless_static_image(self) -> str:
+      return f"gcr.io/distroless/static-debian{self.debian_version}"
+  #+end_src
 

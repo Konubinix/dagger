@@ -18,6 +18,8 @@ from dagger import dag, function
 class PipToolsMixin:
 
     <<pip-tools>>
+
+    <<pip-tools-image>>
 #+end_src
 
 * A pip-tools container
@@ -40,7 +42,7 @@ class PipToolsMixin:
   @function
   def pip_tools(self) -> dagger.Container:
       """Python Alpine with pip-tools and a default user."""
-      ctr = dag.container().from_(f"python:{self.pip_tools_python_version}-alpine")
+      ctr = dag.container().from_(self.pinned(self._pip_tools_image))
       ctr = self.use_user(ctr)
       return ctr.with_exec(["pip", "--quiet", "install", "pip-tools"])
   #+end_src
@@ -52,4 +54,16 @@ class PipToolsMixin:
 
   #+RESULTS[411e2342d105eada0a7a1a0e56e27b8fdcd1d4bc]: pip_tools_available
   : /home/sam/.local/bin/pip-compile
+
+
+* Image reference for pin management
+
+  See [[file:alpine.org::*Image reference for pin management][alpine]] for the convention.
+
+  #+NAME: pip-tools-image
+  #+begin_src python
+  @property
+  def _pip_tools_image(self) -> str:
+      return f"python:{self.pip_tools_python_version}-alpine"
+  #+end_src
 

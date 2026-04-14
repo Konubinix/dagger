@@ -74,6 +74,10 @@ class DindMixin:
     <<dind-init-examples>>
 
     <<export-html>>
+
+    <<dind-engine-image>>
+
+    <<dind-base-image>>
 #+end_src
 
 * Docker daemon sidecar
@@ -97,7 +101,7 @@ class DindMixin:
       """
       return (
           dag.container()
-          .from_(self.dind_image)
+          .from_(self.pinned(self._dind_engine_image))
           .with_env_variable("DOCKER_TLS_CERTDIR", "")
           .with_env_variable("TINI_SUBREAPER", "")
           .with_new_file(
@@ -145,9 +149,9 @@ class DindMixin:
       Otherwise uses Lib.dind_ubuntu_image.
       """
       if base is None:
-          base = dag.container().from_(self.dind_ubuntu_image)
+          base = dag.container().from_(self.pinned(self._dind_base_image))
       docker_cli = (
-          dag.container().from_(self.dind_image).file("/usr/local/bin/docker")
+          dag.container().from_(self.pinned(self._dind_engine_image)).file("/usr/local/bin/docker")
       )
       return base.with_file("/usr/local/bin/docker", docker_cli)
   #+end_src
@@ -264,7 +268,7 @@ class DindMixin:
       """Return a lightweight container with emacs, git, python, and ruff."""
       return (
           dag.container()
-          .from_(self.dind_ubuntu_image)
+          .from_(self.pinned(self._dind_base_image))
           .with_exec(["apt-get", "update"])
           .with_exec([
               "apt-get", "install", "--yes",
@@ -443,3 +447,24 @@ class DindMixin:
 
   #+RESULTS[ed3d4f41d5700e5de924ac245559d5a3578e180e]: dind_docker_info
   : linux
+
+
+* Image references for pin management
+
+  See [[file:alpine.org::*Image reference for pin management][alpine]] for the convention.  These properties alias the
+  user-facing =dind_image= and =dind_ubuntu_image= fields so the
+  =_*_image= discovery convention picks them up.
+
+  #+NAME: dind-engine-image
+  #+begin_src python
+  @property
+  def _dind_engine_image(self) -> str:
+      return self.dind_image
+  #+end_src
+
+  #+NAME: dind-base-image
+  #+begin_src python
+  @property
+  def _dind_base_image(self) -> str:
+      return self.dind_ubuntu_image
+  #+end_src

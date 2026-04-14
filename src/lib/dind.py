@@ -33,7 +33,7 @@ class DindMixin:
         """
         return (
             dag.container()
-            .from_(self.dind_image)
+            .from_(self.pinned(self._dind_engine_image))
             .with_env_variable("DOCKER_TLS_CERTDIR", "")
             .with_env_variable("TINI_SUBREAPER", "")
             .with_new_file(
@@ -71,9 +71,11 @@ class DindMixin:
         Otherwise uses Lib.dind_ubuntu_image.
         """
         if base is None:
-            base = dag.container().from_(self.dind_ubuntu_image)
+            base = dag.container().from_(self.pinned(self._dind_base_image))
         docker_cli = (
-            dag.container().from_(self.dind_image).file("/usr/local/bin/docker")
+            dag.container()
+            .from_(self.pinned(self._dind_engine_image))
+            .file("/usr/local/bin/docker")
         )
         return base.with_file("/usr/local/bin/docker", docker_cli)
 
@@ -172,7 +174,7 @@ class DindMixin:
         """Return a lightweight container with emacs, git, python, and ruff."""
         return (
             dag.container()
-            .from_(self.dind_ubuntu_image)
+            .from_(self.pinned(self._dind_base_image))
             .with_exec(["apt-get", "update"])
             .with_exec(
                 [
@@ -363,6 +365,14 @@ class DindMixin:
             "/work/.tangle-deps", dag.cache_volume("tangle-deps")
         )
         return ctr.with_exec(["./export-html-host.sh"]).directory("/work/_site")
+
+    @property
+    def _dind_engine_image(self) -> str:
+        return self.dind_image
+
+    @property
+    def _dind_base_image(self) -> str:
+        return self.dind_ubuntu_image
 
 
 # No heading:1 ends here

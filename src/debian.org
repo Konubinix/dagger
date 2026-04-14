@@ -30,6 +30,8 @@ class DebianMixin:
     <<debian-python-user-venv>>
 
     <<debian-localtime>>
+
+    <<debian-image>>
 #+end_src
 
 * Disabling automatic recommends
@@ -92,7 +94,7 @@ class DebianMixin:
   @function
   def debian(self, distro_packages: list[str] = ()) -> dagger.Container:
       """Debian slim with timezone set, no auto-install, and optional extra packages."""
-      ctr = dag.container().from_(f"debian:{self.debian_tag}")
+      ctr = dag.container().from_(self.pinned(self._debian_image))
       ctr = self.debian_no_auto_install(ctr)
       ctr = self.debian_set_tz(ctr)
       if distro_packages:
@@ -213,4 +215,16 @@ class DebianMixin:
 
   #+RESULTS[8f46140f1cb03ce54c3b1f855d7145b9c5537611]: debian_localtime_export
   : non-empty
+
+
+* Image reference for pin management
+
+  See [[file:alpine.org::*Image reference for pin management][alpine]] for the convention.
+
+  #+NAME: debian-image
+  #+begin_src python
+  @property
+  def _debian_image(self) -> str:
+      return f"debian:{self.debian_tag}"
+  #+end_src
 
