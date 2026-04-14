@@ -9,3 +9,4 @@
 /ralph-output/
 flycheck_*
 /_site/
+/.claude/worktrees
