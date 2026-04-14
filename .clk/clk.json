@@ -56,6 +56,9 @@
                     "exec",
                     "--in-project",
                     "./test.sh"
+                ],
+                [
+                    "check-clean"
                 ]
             ],
             "documentation": null
