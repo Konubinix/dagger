@@ -20,14 +20,20 @@ container, it creates its own =dagger0= bridge in the same
 =10.87.0.1=, making the DNS server unreachable from containers managed
 by the inner engine.
 
+The subnet is hard-coded in Dagger's source (=DefaultCIDR =
+"10.87.0.0/16"= in =github.com/dagger/dagger/network=) with no
+configuration option to change it.  A session-level config file is
+[[https://github.com/dagger/dagger/issues/9007][tracked upstream]] but
+not implemented yet.  Until then, the workaround below is necessary.
+
 The fix lives in the sidecar wrapper script: before starting
 =dockerd=, save the current DNS server and tell Docker (via
 =daemon.json=) to hand out =172.17.0.1= (the Docker bridge gateway)
-as the DNS server for containers.  After =dockerd= creates the
-bridge, add iptables DNAT rules that forward DNS queries arriving at
-=172.17.0.1:53= to the real DNS server.  Containers managed by the
-inner Docker — including a nested Dagger engine — can always reach the
-bridge gateway, so DNS works transparently.
+as the DNS server for containers.  The wrapper then adds iptables DNAT
+rules that forward DNS queries arriving at =172.17.0.1:53= to the
+real DNS server.  Containers managed by the inner Docker — including a
+nested Dagger engine — can always reach the bridge gateway, so DNS
+works transparently.
 
 #+begin_src python :tangle lib/dind.py :noweb yes
 import dagger
