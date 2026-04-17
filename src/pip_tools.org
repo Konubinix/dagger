@@ -10,7 +10,7 @@ I manage Python dependencies with =pip-tools= (=pip-compile= and
 =pip-sync=). I need a ready-made container with these tools installed
 and a non-root user.
 
-#+begin_src python :tangle lib/pip_tools.py :noweb yes
+#+begin_src python :tangle lib/pip_tools.py :noweb yes :exports none
 import dagger
 from dagger import dag, function
 

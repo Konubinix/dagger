@@ -636,62 +636,165 @@ Stops at first failure."
   GitHub's org-mode renderer cannot expand noweb references, so we
   export to HTML via Emacs and publish to GitHub Pages.
 
-  The script reuses =tangle.el= to load the pinned org-mode and
-  configure babel, then exports each file with
-  =org-html-export-to-html=.  File links (=[[file:foo.org]]=) are
-  rewritten to point to =.html= so navigation works in the published
-  site.
+  Prose styling comes from [[https://watercss.kognise.dev][water.css]] — a classless drop-in with
+  auto light/dark mode, pulled at export time and cached in
+  =.tangle-deps/=.  Syntax highlighting comes from ~htmlize~ emitting
+  class-tagged =<span>= elements; we inline a short palette for those
+  classes since batch Emacs has no face colors.
 
-  #+begin_src bash :tangle export-html-host.sh :shebang "#!/usr/bin/env bash" :noweb yes
-  # Export org files to HTML for GitHub Pages.
-  set -euo pipefail
+** Export config (Emacs Lisp)
 
-  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+   Loaded after =tangle.el=, so the pinned org-mode is already on
+   =load-path=.  Reads =.tangle-deps/water.min.css= (fetched by the
+   host script) and inlines it into every exported page via
+   ~org-html-head~ — no separate stylesheet file in =_site/=, so
+   pages stay self-contained regardless of the deployment path.
 
-  <<ensure-org>>
+   #+begin_src emacs-lisp :tangle export-html.el
+   ;;; export-html.el --- ox-html configuration for publishing -*- lexical-binding: t; -*-
 
-  SITE_DIR="$SCRIPT_DIR/_site"
-  rm -rf "$SITE_DIR"
-  mkdir -p "$SITE_DIR"
+   (require 'ox-html)
+   (require 'htmlize)
 
-  export_file() {
-      local orgfile="$1"
-      local relpath
-      relpath="$(realpath --relative-to="$SCRIPT_DIR" "$orgfile")"
-      local outdir="$SITE_DIR/$(dirname "$relpath")"
-      mkdir -p "$outdir"
-      echo "Exporting $relpath..."
-      local rc=0
-      emacs --batch --no-init-file \
-          -l "$SCRIPT_DIR/tangle.el" \
-          --eval "(progn
-                    (require 'ox-html)
-                    (find-file \"$orgfile\")
-                    ;; Rewrite file: links from .org to .html
-                    (setq org-html-link-org-files-as-html t)
-                    (org-html-export-to-html)
-                    (kill-buffer))" 2>&1 || rc=$?
-      if [ "$rc" -ne 0 ]; then
-          echo "ERROR: export failed for $relpath (exit $rc)" >&2
-          return "$rc"
-      fi
-      local htmlfile="${orgfile%.org}.html"
-      if [ -f "$htmlfile" ]; then
-          mv "$htmlfile" "$outdir/"
-      fi
-  }
+   ;; Class-tagged spans so our <style> block below drives colors.
+   (setq org-html-htmlize-output-type 'css)
 
-  for f in "$SCRIPT_DIR"/readme.org "$SCRIPT_DIR"/TECHNICAL.org \
-           "$SCRIPT_DIR"/src/*.org "$SCRIPT_DIR"/tests/*.org \
-           "$SCRIPT_DIR"/examples/*/readme.org; do
-      [ -f "$f" ] && export_file "$f"
-  done
+   ;; Rewrite file:foo.org links to foo.html so cross-page navigation
+   ;; works on the published site.
+   (setq org-html-link-org-files-as-html t)
 
-  # Root readme becomes index.html
-  if [ -f "$SITE_DIR/readme.html" ]; then
-      cp "$SITE_DIR/readme.html" "$SITE_DIR/index.html"
-  fi
-  #+end_src
+   ;; Don't treat "_" and "^" as subscript/superscript in prose — we
+   ;; have plenty of identifiers like =.with_exec= and =DOCKER_HOST=
+   ;; that would otherwise render as =.with<sub>exec</sub>=.  Explicit
+   ;; =_{foo}= / =^{foo}= still work if anyone ever needs them.
+   (setq org-export-with-sub-superscripts '{})
+
+   ;; water.css replaces the default prose theme; drop the built-in one.
+   (setq org-html-head-include-default-style nil)
+   (setq org-html-head-include-scripts nil)
+
+   (defun daggerlib--water-css ()
+     "Return the contents of the water.css bundle in =.tangle-deps/=.
+   The file is fetched by =export-html-host.sh= before Emacs runs; the
+   exact filename encodes the pinned version and variant, so we glob
+   for =water-*.min.css= rather than hard-coding that here."
+     (let* ((root (file-name-directory (or load-file-name buffer-file-name)))
+            (hits (file-expand-wildcards
+                   (expand-file-name ".tangle-deps/water-*.min.css" root))))
+       (unless hits
+         (error "water.css missing in .tangle-deps/ (did export-html-host.sh fetch it?)"))
+       (with-temp-buffer
+         (insert-file-contents (car hits))
+         (buffer-string))))
+
+   (defconst daggerlib--syntax-css "
+   .org-keyword,.org-builtin,.org-preprocessor{color:#d2a8ff}
+   .org-string{color:#a5d6ff}
+   .org-comment,.org-comment-delimiter,.org-doc{color:#8b949e;font-style:italic}
+   .org-function-name{color:#79c0ff}
+   .org-type,.org-constant{color:#ffa657}
+   .org-variable-name{color:#ff7b72}")
+
+   (setq org-html-head
+         (concat "<style>"
+                 (daggerlib--water-css)
+                 daggerlib--syntax-css
+                 "</style>"))
+
+   ;; "← Home" breadcrumb pointing back to the root readme.  Rendered
+   ;; as a preamble so every page (except the home page itself) shows
+   ;; a way back.  The href is computed relative to the page being
+   ;; exported so deployment sub-paths (e.g. /daggerlib/) don't matter.
+   (defun daggerlib--home-preamble (info)
+     (let* ((src (expand-file-name (plist-get info :input-file)))
+            (root (locate-dominating-file src "dagger.json"))
+            (root-readme (expand-file-name "readme.org" root))
+            (src-dir (file-name-directory src))
+            (rel (file-relative-name
+                  (expand-file-name "index.html" root) src-dir)))
+       (if (file-equal-p src root-readme)
+           ""
+         (format "<nav><a href=\"%s\">← Home</a></nav>" rel))))
+
+   (setq org-html-preamble #'daggerlib--home-preamble)
+
+   (defun daggerlib/export-file (orgfile)
+     "Export ORGFILE to HTML next to it (ox-html writes alongside the source)."
+     (find-file orgfile)
+     (org-html-export-to-html)
+     (kill-buffer))
+
+   (provide 'export-html)
+   ;;; export-html.el ends here
+   #+end_src
+
+** Host script
+
+   Walks the publishable org files, fetches water.css once into the
+   shared =.tangle-deps/= cache, invokes batch Emacs with both
+   =tangle.el= and =export-html.el=, and moves each resulting =.html=
+   into =_site/= mirroring the source layout.
+
+   The water.css version is pinned in =jsdelivr=' URL path; bump the
+   version here to refresh.  The file is committed nowhere — Dagger's
+   =tangle-deps= cache volume keeps it across runs inside the
+   container, and locally it lives next to the pinned org-mode clone.
+
+   #+begin_src bash :tangle export-html-host.sh :shebang "#!/usr/bin/env bash" :noweb yes
+   # Export org files to HTML for GitHub Pages.
+   set -euo pipefail
+
+   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+   <<ensure-org>>
+
+   WATER_CSS_VERSION="2.1.1"
+   WATER_CSS_VARIANT="dark"
+   WATER_CSS_URL="https://cdn.jsdelivr.net/npm/water.css@${WATER_CSS_VERSION}/out/${WATER_CSS_VARIANT}.min.css"
+   WATER_CSS_FILE="$SCRIPT_DIR/.tangle-deps/water-${WATER_CSS_VERSION}-${WATER_CSS_VARIANT}.min.css"
+   if [ ! -s "$WATER_CSS_FILE" ]; then
+       echo "Fetching water.css@${WATER_CSS_VERSION}..."
+       mkdir -p "$(dirname "$WATER_CSS_FILE")"
+       curl -fsSL "$WATER_CSS_URL" -o "$WATER_CSS_FILE"
+   fi
+
+   SITE_DIR="$SCRIPT_DIR/_site"
+   rm -rf "$SITE_DIR"
+   mkdir -p "$SITE_DIR"
+
+   export_file() {
+       local orgfile="$1"
+       local relpath
+       relpath="$(realpath --relative-to="$SCRIPT_DIR" "$orgfile")"
+       local outdir="$SITE_DIR/$(dirname "$relpath")"
+       mkdir -p "$outdir"
+       echo "Exporting $relpath..."
+       local rc=0
+       emacs --batch --no-init-file \
+           -l "$SCRIPT_DIR/tangle.el" \
+           -l "$SCRIPT_DIR/export-html.el" \
+           --eval "(daggerlib/export-file \"$orgfile\")" 2>&1 || rc=$?
+       if [ "$rc" -ne 0 ]; then
+           echo "ERROR: export failed for $relpath (exit $rc)" >&2
+           return "$rc"
+       fi
+       local htmlfile="${orgfile%.org}.html"
+       if [ -f "$htmlfile" ]; then
+           mv "$htmlfile" "$outdir/"
+       fi
+   }
+
+   for f in "$SCRIPT_DIR"/readme.org "$SCRIPT_DIR"/TECHNICAL.org \
+            "$SCRIPT_DIR"/src/*.org "$SCRIPT_DIR"/tests/*.org \
+            "$SCRIPT_DIR"/examples/*/readme.org; do
+       [ -f "$f" ] && export_file "$f"
+   done
+
+   # Root readme becomes index.html
+   if [ -f "$SITE_DIR/readme.html" ]; then
+       cp "$SITE_DIR/readme.html" "$SITE_DIR/index.html"
+   fi
+   #+end_src
 
 * Containerized wrappers
 

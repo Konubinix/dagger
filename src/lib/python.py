@@ -1,4 +1,4 @@
-# [[file:../python.org::+begin_src python :tangle lib/python.py :noweb yes][No heading:1]]
+# [[file:../python.org::+begin_src python :tangle lib/python.py :noweb yes :exports none][No heading:1]]
 import dagger
 from dagger import function
 

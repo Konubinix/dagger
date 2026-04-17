@@ -1,4 +1,4 @@
-# [[file:../ralph.org::+begin_src python :tangle lib/ralph.py :noweb yes][No heading:1]]
+# [[file:../ralph.org::+begin_src python :tangle lib/ralph.py :noweb yes :exports none][No heading:1]]
 import shlex
 
 import dagger

@@ -1,4 +1,4 @@
-# [[file:../user.org::+begin_src python :tangle lib/user.py :noweb yes][No heading:1]]
+# [[file:../user.org::+begin_src python :tangle lib/user.py :noweb yes :exports none][No heading:1]]
 import shlex
 
 import dagger

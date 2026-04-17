@@ -13,7 +13,7 @@ npm packages, git identity, credentials, and patch extraction.
 The caller is responsible for installing their project's own
 dependencies in the container before passing it here.
 
-#+begin_src python :tangle lib/ralph.py :noweb yes
+#+begin_src python :tangle lib/ralph.py :noweb yes :exports none
 import shlex
 
 import dagger

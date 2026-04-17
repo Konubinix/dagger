@@ -1,4 +1,4 @@
-# [[file:../alpine.org::+begin_src python :tangle lib/alpine.py :noweb yes][No heading:1]]
+# [[file:../alpine.org::+begin_src python :tangle lib/alpine.py :noweb yes :exports none][No heading:1]]
 import dagger
 from dagger import dag, function
 

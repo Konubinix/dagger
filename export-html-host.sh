@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [[file:TECHNICAL.org::*Export HTML (host)][Export HTML (host):1]]
+# [[file:TECHNICAL.org::*Host script][Host script:1]]
 # Export org files to HTML for GitHub Pages.
 set -euo pipefail
 
@@ -34,6 +34,16 @@ if [ ! -d "$ORG_DIR" ]; then
                                         \"$ORG_GIT_VERSION\"))") 2>/dev/null || true
 fi
 
+WATER_CSS_VERSION="2.1.1"
+WATER_CSS_VARIANT="dark"
+WATER_CSS_URL="https://cdn.jsdelivr.net/npm/water.css@${WATER_CSS_VERSION}/out/${WATER_CSS_VARIANT}.min.css"
+WATER_CSS_FILE="$SCRIPT_DIR/.tangle-deps/water-${WATER_CSS_VERSION}-${WATER_CSS_VARIANT}.min.css"
+if [ ! -s "$WATER_CSS_FILE" ]; then
+    echo "Fetching water.css@${WATER_CSS_VERSION}..."
+    mkdir -p "$(dirname "$WATER_CSS_FILE")"
+    curl -fsSL "$WATER_CSS_URL" -o "$WATER_CSS_FILE"
+fi
+
 SITE_DIR="$SCRIPT_DIR/_site"
 rm -rf "$SITE_DIR"
 mkdir -p "$SITE_DIR"
@@ -48,13 +58,8 @@ export_file() {
     local rc=0
     emacs --batch --no-init-file \
         -l "$SCRIPT_DIR/tangle.el" \
-        --eval "(progn
-                  (require 'ox-html)
-                  (find-file \"$orgfile\")
-                  ;; Rewrite file: links from .org to .html
-                  (setq org-html-link-org-files-as-html t)
-                  (org-html-export-to-html)
-                  (kill-buffer))" 2>&1 || rc=$?
+        -l "$SCRIPT_DIR/export-html.el" \
+        --eval "(daggerlib/export-file \"$orgfile\")" 2>&1 || rc=$?
     if [ "$rc" -ne 0 ]; then
         echo "ERROR: export failed for $relpath (exit $rc)" >&2
         return "$rc"
@@ -75,4 +80,4 @@ done
 if [ -f "$SITE_DIR/readme.html" ]; then
     cp "$SITE_DIR/readme.html" "$SITE_DIR/index.html"
 fi
-# Export HTML (host):1 ends here
+# Host script:1 ends here

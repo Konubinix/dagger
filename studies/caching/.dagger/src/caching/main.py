@@ -95,6 +95,4 @@ class Caching:
             .stdout()
         )
         return f"{time.monotonic() - start:.2f}s"
-
-
 # The module:3 ends here

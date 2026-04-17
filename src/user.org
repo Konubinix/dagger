@@ -7,7 +7,7 @@ Running containers as root is a security risk. I need reusable helpers
 to create users, switch to them, and set up their environment — without
 repeating the same =adduser= boilerplate in every project.
 
-#+begin_src python :tangle lib/user.py :noweb yes
+#+begin_src python :tangle lib/user.py :noweb yes :exports none
 import shlex
 
 import dagger

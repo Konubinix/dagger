@@ -1,4 +1,4 @@
-# [[file:../distroless.org::+begin_src python :tangle lib/distroless.py :noweb yes][No heading:1]]
+# [[file:../distroless.org::+begin_src python :tangle lib/distroless.py :noweb yes :exports none][No heading:1]]
 import dagger
 from dagger import dag, function
 

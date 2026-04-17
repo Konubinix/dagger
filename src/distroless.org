@@ -7,7 +7,7 @@ For production, I want the smallest possible attack surface. Distroless
 images have no shell, no package manager — just my application and its
 runtime. But I still need the correct timezone.
 
-#+begin_src python :tangle lib/distroless.py :noweb yes
+#+begin_src python :tangle lib/distroless.py :noweb yes :exports none
 import dagger
 from dagger import dag, function
 

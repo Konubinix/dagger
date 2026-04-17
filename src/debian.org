@@ -8,7 +8,7 @@ on Debian. I want Debian slim containers with the same defaults as my
 Alpine ones: correct timezone, no unnecessary packages pulled in, and
 easy user setup.
 
-#+begin_src python :tangle lib/debian.py :noweb yes
+#+begin_src python :tangle lib/debian.py :noweb yes :exports none
 import shlex
 
 import dagger

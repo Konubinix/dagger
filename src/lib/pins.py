@@ -1,4 +1,4 @@
-# [[file:../pins.org::+begin_src python :tangle lib/pins.py :noweb yes][No heading:1]]
+# [[file:../pins.org::+begin_src python :tangle lib/pins.py :noweb yes :exports none][No heading:1]]
 import json
 from pathlib import Path
 

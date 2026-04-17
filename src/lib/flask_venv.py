@@ -1,4 +1,4 @@
-# [[file:../flask_venv.org::+begin_src python :tangle lib/flask_venv.py :noweb yes][No heading:1]]
+# [[file:../flask_venv.org::+begin_src python :tangle lib/flask_venv.py :noweb yes :exports none][No heading:1]]
 import dagger
 from dagger import function
 

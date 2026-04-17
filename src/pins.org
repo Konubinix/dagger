@@ -12,7 +12,7 @@ from tag to digest.  The =pinned()= helper looks up the digest and
 returns =tag@sha256:…= so Dagger always resolves to the exact build I
 tested.
 
-#+begin_src python :tangle lib/pins.py :noweb yes
+#+begin_src python :tangle lib/pins.py :noweb yes :exports none
 import json
 from pathlib import Path
 

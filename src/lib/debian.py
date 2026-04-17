@@ -1,4 +1,4 @@
-# [[file:../debian.org::+begin_src python :tangle lib/debian.py :noweb yes][No heading:1]]
+# [[file:../debian.org::+begin_src python :tangle lib/debian.py :noweb yes :exports none][No heading:1]]
 import shlex
 
 import dagger

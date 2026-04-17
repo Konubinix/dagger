@@ -5,7 +5,7 @@
 Distro-agnostic helpers for creating Python virtualenvs inside
 containers. Used by both Alpine and Debian container builders.
 
-#+begin_src python :tangle lib/python.py :noweb yes
+#+begin_src python :tangle lib/python.py :noweb yes :exports none
 import dagger
 from dagger import function
 

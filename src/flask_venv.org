@@ -7,7 +7,7 @@ I often build small Flask APIs. Instead of repeating the venv setup in
 every project, I want a pre-built virtualenv with Flask installed that
 I can copy into my final image.
 
-#+begin_src python :tangle lib/flask_venv.py :noweb yes
+#+begin_src python :tangle lib/flask_venv.py :noweb yes :exports none
 import dagger
 from dagger import function
 

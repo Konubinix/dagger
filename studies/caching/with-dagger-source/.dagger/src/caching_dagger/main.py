@@ -1,4 +1,4 @@
-# [[file:../../../../readme.org::*Sub-project: =.dagger= layout][Sub-project: =.dagger= layout:5]]
+# [[file:../../../../readme.org::*Sub-project: =.dagger= layout][Sub-project: =.dagger= layout:6]]
 import time
 from typing import Annotated
 
@@ -45,6 +45,4 @@ class CachingDagger:
             .stdout()
         )
         return f"{time.monotonic() - start:.2f}s"
-
-
-# Sub-project: =.dagger= layout:5 ends here
+# Sub-project: =.dagger= layout:6 ends here

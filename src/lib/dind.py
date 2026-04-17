@@ -1,4 +1,4 @@
-# [[file:../dind.org::+begin_src python :tangle lib/dind.py :noweb yes][No heading:1]]
+# [[file:../dind.org::+begin_src python :tangle lib/dind.py :noweb yes :exports none][No heading:1]]
 from typing import Annotated
 
 import dagger
@@ -169,7 +169,13 @@ class DindMixin:
         self,
         src: dagger.Directory,
     ) -> dagger.Container:
-        """Return a lightweight container with emacs, git, python, and ruff."""
+        """Return a lightweight container with emacs, git, python, and ruff.
+
+        ~elpa-htmlize~ is installed so ~ox-html~ exports can produce
+        syntax-highlighted source blocks.  ~curl~ is there so
+        ~export-html-host.sh~ can fetch water.css into the shared
+        =.tangle-deps/= cache.
+        """
         return (
             dag.container()
             .from_(self.pinned(self._dind_base_image))
@@ -180,6 +186,8 @@ class DindMixin:
                     "install",
                     "--yes",
                     "emacs-nox",
+                    "elpa-htmlize",
+                    "curl",
                     "git",
                     "python3",
                     "python3-pip",
@@ -371,6 +379,7 @@ class DindMixin:
                     "!*.org",
                     "!*.sh",
                     "!*.el",
+                    "!dagger.json",
                 ]
             ),
         ],

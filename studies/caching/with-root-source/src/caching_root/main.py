@@ -45,6 +45,4 @@ class CachingRoot:
             .stdout()
         )
         return f"{time.monotonic() - start:.2f}s"
-
-
 # Sub-project: root-as-source layout:4 ends here

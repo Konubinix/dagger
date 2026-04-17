@@ -12,7 +12,7 @@ go-to base image because it's small and fast to pull. The timezone
 defaults to Europe/Paris but is configurable via the =Lib.timezone=
 field.
 
-#+begin_src python :tangle lib/alpine.py :noweb yes
+#+begin_src python :tangle lib/alpine.py :noweb yes :exports none
 import dagger
 from dagger import dag, function
 
